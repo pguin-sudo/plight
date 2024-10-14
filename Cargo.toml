@@ -1,0 +1,9 @@
+[package]
+name = "plight"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+confique = "0.2.6"
+rand = "0.8.5"
+serialport = "4.5.1"

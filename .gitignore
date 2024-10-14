@@ -1,0 +1,12 @@
+# IDEs
+.idea/
+.vscode/
+
+# Rust
+debug/
+target/
+
+Cargo.lock
+
+**/*.rs.bk
+*.pdb
