@@ -1,0 +1,17 @@
+name: PLight
+author: pguin-sudo <https://github.com/pguin-sudo>
+description: A sketch to control an LED strip using FastLED library
+
+default_port: /dev/ttyUSB0
+# default_fqbn: arduino:avr:nano:cpu=atmega328old
+# default_programmer: atmel_ice
+# default_protocol: serial
+default_profile: default
+
+profiles:
+  default:
+    fqbn: arduino:avr:nano:cpu=atmega328old
+    platforms:
+      - platform: arduino:avr (1.8.6)
+    libraries:
+      - FastLED (3.4.0)

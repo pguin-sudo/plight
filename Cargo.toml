@@ -1,0 +1,18 @@
+[package]
+name = "plight"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+confique = { version = "0.2.6", features = ["toml"] }
+crossterm = "0.28.1"
+delta = "0.2.1"
+image = "0.25.2"
+rand = "0.8.5"
+readonly = "0.2.12"
+rgb = "0.8.50"
+serde = "1.0.210"
+serde_derive = "1.0.210"
+serialport = "4.5.1"
+tokio = { version = "1.40.0", features = ["full"] }
+xcap = "0.0.14"
