@@ -18,8 +18,8 @@ impl Strip {
             port: serialport::new(conf.serial_port.clone(), conf.baudrate)
                 .open()
                 .expect("Failed to open port"),
-            strip_length: conf.length() as usize,
             tint_conf: conf.tint.clone(),
+            strip_length: conf.length() as usize,
         }
     }
 
@@ -53,7 +53,45 @@ impl Strip {
                 _ => (rgba.r, rgba.g, rgba.b),
             };
 
+            let (r, g, b) = self.apply_gamma_contrast_saturation(r, g, b);
             let _ = self.port.write(&[r, g, b]);
         }
+    }
+
+    fn apply_gamma_contrast_saturation(&self, r: u8, g: u8, b: u8) -> (u8, u8, u8) {
+        let r = self.apply_gamma(r, self.tint_conf.gamma);
+        let g = self.apply_gamma(g, self.tint_conf.gamma);
+        let b = self.apply_gamma(b, self.tint_conf.gamma);
+
+        let (r, g, b) = self.adjust_contrast(r, g, b, self.tint_conf.contrast);
+        let (r, g, b) = self.adjust_saturation(r, g, b, self.tint_conf.saturation);
+
+        (r, g, b)
+    }
+
+    fn apply_gamma(&self, value: u8, gamma: f32) -> u8 {
+        let normalized = value as f32 / 255.0;
+        let corrected = normalized.powf(1.0 / gamma);
+        (corrected * 255.0).round() as u8
+    }
+
+    fn adjust_contrast(&self, r: u8, g: u8, b: u8, contrast: f32) -> (u8, u8, u8) {
+        let factor = (259.0 * (contrast + 255.0)) / (255.0 * (259.0 - contrast));
+        let new_r = (factor * (r as f32 - 128.0) + 128.0).clamp(0.0, 255.0) as u8;
+        let new_g = (factor * (g as f32 - 128.0) + 128.0).clamp(0.0, 255.0) as u8;
+        let new_b = (factor * (b as f32 - 128.0) + 128.0).clamp(0.0, 255.0) as u8;
+        (new_r, new_g, new_b)
+    }
+
+    fn adjust_saturation(&self, r: u8, g: u8, b: u8, saturation: f32) -> (u8, u8, u8) {
+        let avg = (r as f32 + g as f32 + b as f32) / 3.0;
+        let new_r = avg + saturation * (r as f32 - avg);
+        let new_g = avg + saturation * (g as f32 - avg);
+        let new_b = avg + saturation * (b as f32 - avg);
+        (
+            new_r.clamp(0.0, 255.0) as u8,
+            new_g.clamp(0.0, 255.0) as u8,
+            new_b.clamp(0.0, 255.0) as u8,
+        )
     }
 }

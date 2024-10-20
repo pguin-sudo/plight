@@ -1,4 +1,6 @@
-use confique::Config;
+use confique::{toml::FormatOptions, Config};
+use std::fs::File;
+use std::io::Write;
 
 use crate::modes::Mode;
 
@@ -47,6 +49,12 @@ pub struct StripConf {
 pub struct TintConf {
     #[config(default = "GRB")]
     pub order: String,
+    #[config(default = 0.2)]
+    pub gamma: f32,
+    #[config(default = 1)]
+    pub contrast: f32,
+    #[config(default = 0.9)]
+    pub saturation: f32,
 }
 
 #[derive(Config)]
