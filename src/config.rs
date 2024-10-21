@@ -1,4 +1,5 @@
 use confique::Config;
+use std::path::PathBuf;
 
 use crate::modes::Mode;
 
@@ -58,13 +59,21 @@ pub struct TintConf {
 #[derive(Config)]
 pub struct ModesConf {
     #[config(nested)]
-    pub color: ColorConf,
+    pub color: ColorModConf,
+    #[config(nested)]
+    pub cava_wall_dcol: CavaWallDcolModConf,
 }
 
 #[derive(Config)]
-pub struct ColorConf {
+pub struct ColorModConf {
     #[config(default = [192, 168, 31])]
     pub color: [u8; 3],
+}
+
+#[derive(Config)]
+pub struct CavaWallDcolModConf {
+    #[config(default = "/home/pguin/.config/cava/Wall-Dcol")]
+    pub path_to_dcol: PathBuf,
 }
 
 impl Conf {
