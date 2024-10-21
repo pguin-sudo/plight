@@ -3,9 +3,6 @@ mod modes;
 mod strip;
 mod utils;
 
-use std::time::Duration;
-use tokio::time::sleep;
-
 use config::Conf;
 use strip::Strip;
 
@@ -20,8 +17,5 @@ async fn main() {
     let mode = config.mode;
     println!("Current mode is \"{:?}\"", mode);
 
-    loop {
-        strip.set_leds(mode.process(&config));
-        sleep(Duration::from_millis(config.update_rate)).await;
-    }
+    mode.poll(&config, |f| strip.set_leds(f)).await;
 }

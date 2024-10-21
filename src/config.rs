@@ -1,6 +1,4 @@
-use confique::{toml::FormatOptions, Config};
-use std::fs::File;
-use std::io::Write;
+use confique::Config;
 
 use crate::modes::Mode;
 
