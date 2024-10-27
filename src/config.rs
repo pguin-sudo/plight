@@ -1,9 +1,11 @@
-use confique::Config;
+use confique::{toml::FormatOptions, Config};
+use std::fs;
+use std::fs::File;
 use std::path::PathBuf;
+use std::io::Write;
+use std::env;
 
 use crate::modes::Mode;
-
-const DEFAULT_CONFIG_PATH: &str = "/etc/plight/config.toml";
 
 #[derive(Config)]
 pub struct Conf {
@@ -44,6 +46,12 @@ pub struct StripConf {
     pub tint: TintConf,
 }
 
+impl StripConf {
+    pub fn length(&self) -> u8 {
+        (self.width * 2 + self.hight * 2 - self.bottom_gap).into()
+    }
+}
+
 #[derive(Clone, Config)]
 pub struct TintConf {
     #[config(default = "GRB")]
@@ -78,19 +86,38 @@ pub struct CavaWallDcolModConf {
 
 impl Conf {
     pub fn new() -> Conf {
-        Conf::from_file(DEFAULT_CONFIG_PATH).expect("Error loading config")
+        let default_config_path = get_default_config_path();
+        create_new_config(&default_config_path);
+        Conf::from_file(default_config_path).expect("Error loading config")
     }
 }
 
-impl StripConf {
-    pub fn length(&self) -> u8 {
-        (self.width * 2 + self.hight * 2 - self.bottom_gap).into()
-    }
+fn get_default_config_path() -> String {
+    let home_dir = env::var("HOME").expect("Unable to get HOME directory");
+    format!("{}/.config/plight/config.toml", home_dir)
 }
 
-// fn create_new_config() {
-//     let _ = File::create(DEFAULT_CONFIG_PATH)
-//         .expect(&format!("Creating new config in {}", DEFAULT_CONFIG_PATH))
-//         .write_all(confique::toml::template::<Conf>(FormatOptions::default()).as_bytes());
-//     println!("A new config has been created at `{}`", DEFAULT_CONFIG_PATH);
-// }
+fn create_new_config(default_config_path: &str) {
+    let binding = PathBuf::from(default_config_path);
+    let parent_dir = binding.parent().unwrap();
+    if let Err(e) = fs::create_dir_all(parent_dir) {
+        eprintln!("Error creating directories: {}", e);
+        return;
+    }
+
+    if !PathBuf::from(default_config_path).exists() {
+        match File::create(default_config_path) {
+            Ok(mut file) => {
+                let content = confique::toml::template::<Conf>(FormatOptions::default());
+                if let Err(e) = file.write_all(content.as_bytes()) {
+                    eprintln!("Error writing to config file: {}", e);
+                } else {
+                    println!("A new config has been created at `{}`", default_config_path);
+                }
+            }
+            Err(e) => eprintln!("Error creating config file: {}", e),
+        }
+    } else {
+        println!("Config file already exists at `{}`", default_config_path);
+    }
+}

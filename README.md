@@ -8,8 +8,8 @@ A configurable program for organizing dynamic backlighting.
 
 1. Clone this repository with:
 ```bash
-git clone https://github.com/pguin-sudo/plight /src/plight
-cd /src/plight
+git clone https://github.com/pguin-sudo/plight /usr/src/plight
+cd /usr/src/plight
 ```
 
 2. Build using cargo:
@@ -19,12 +19,7 @@ cargo build --release
 
 3. Add semantic link to bin:
 ```bash
-sudo ln -s /src/plight/target/release/plight /bin/plight
-```
-
-1. Set up config in `/etc/plight/config.toml`:
-```bash
-sudo mkdir /etc/plight && sudo touch /etc/plight/config.toml && sudo vim /etc/plight/config.toml
+sudo ln -s /usr/src/plight/target/release/plight /usr/bin/plight
 ```
 
 ### Step 2: Setup arduino
@@ -33,7 +28,7 @@ Setup arduino with arduino-cli
 
 1. Move to the arduino directory:
 ```bash
-cd /src/plight/arduino
+cd /usr/src/plight/arduino
 ```
 
 2. Configure your setup in `/src/plight/arduino/sketch.yaml`:
@@ -44,7 +39,7 @@ sudo chmod 777 /dev/ttyUSBX
 ```
 
 4. Compile:
-```bash
+```bashr
 arduino-cli compile 
 ```
 
@@ -60,7 +55,7 @@ Create a systemd service file to manage the daemon:
 1. Create a new file called `plight.service` in `/etc/systemd/system/`:
 
 ```bash
-sudo vim /etc/systemd/system/plight.service
+sudo vim /etc/systemd/user/plight.service
 ```
 
 2. Add the following content to the file:
@@ -72,10 +67,19 @@ Description=PLight - dynamic backlighting
 [Service]
 ExecStart=/bin/plight
 Restart=always
-User=root
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
+```
+
+3. Change mode of USB device:
+
+```bash
+sudo vim /etc/udev/rules.d/99-usb-tty.rules
+```
+
+```rules
+KERNEL=="ttyUSBX", MODE="0777"
 ```
 
 ### Step 4: Start and Enable the Daemon
@@ -83,8 +87,8 @@ WantedBy=multi-user.target
 Run the following commands to start and enable the daemon:
 
 ```bash
-sudo systemctl start plight.service
-sudo systemctl enable plight.service
+sudo systemctl --user start plight.service
+sudo systemctl --user enable plight.service
 ```
 
 ### Step 4: Check the Logs
