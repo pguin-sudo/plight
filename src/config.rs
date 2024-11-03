@@ -1,19 +1,19 @@
 use confique::{toml::FormatOptions, Config};
+use std::env;
 use std::fs;
 use std::fs::File;
-use std::path::PathBuf;
 use std::io::Write;
-use std::env;
+use std::path::PathBuf;
 
+use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
+use crate::modes::color::ColorModConf;
+use crate::modes::wallpaper::WallpaperModConf;
 use crate::modes::Mode;
 
 #[derive(Config)]
 pub struct Conf {
-    #[config(default = "Color")]
+    #[config(default = "Wallpaper")]
     pub mode: Mode,
-    // Update rate in milliseconds
-    #[config(default = 32)]
-    pub update_rate: u64,
 
     // Strip configuration
     #[config(nested)]
@@ -26,16 +26,20 @@ pub struct Conf {
 
 #[derive(Clone, Config)]
 pub struct StripConf {
-    // #[config(default = true)]
-    // pub skip_corners: bool,
     #[config(default = 29)]
-    pub width: u8,
+    pub width: usize,
     #[config(default = 15)]
-    pub hight: u8,
+    pub height: usize,
     #[config(default = 7)]
-    pub bottom_gap: u8,
-    // #[config(default = false)]
-    // pub clockwise: bool,
+    pub bottom_gap: usize,
+    // Width of coreners (pixels)
+    #[config(default = 0)]
+    pub corner_size_p: usize,
+    #[config(default = 100)]
+    pub thickness_p: usize,
+    /// #[config(default = false)]
+    /// pub clockwise: bool,
+
     #[config(default = "/dev/ttyUSB0")]
     pub serial_port: String,
     #[config(default = 115200)]
@@ -47,8 +51,8 @@ pub struct StripConf {
 }
 
 impl StripConf {
-    pub fn length(&self) -> u8 {
-        (self.width * 2 + self.hight * 2 - self.bottom_gap).into()
+    pub fn len(&self) -> usize {
+        self.width * 2 + self.height * 2 - self.bottom_gap
     }
 }
 
@@ -70,18 +74,8 @@ pub struct ModesConf {
     pub color: ColorModConf,
     #[config(nested)]
     pub cava_wall_dcol: CavaWallDcolModConf,
-}
-
-#[derive(Config)]
-pub struct ColorModConf {
-    #[config(default = [192, 168, 31])]
-    pub color: [u8; 3],
-}
-
-#[derive(Config)]
-pub struct CavaWallDcolModConf {
-    #[config(default = "/home/pguin/.config/cava/Wall-Dcol")]
-    pub path_to_dcol: PathBuf,
+    #[config(nested)]
+    pub wallpaper: WallpaperModConf,
 }
 
 impl Conf {

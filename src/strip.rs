@@ -19,11 +19,11 @@ impl Strip {
                 .open()
                 .expect("Failed to open port"),
             tint_conf: conf.tint.clone(),
-            strip_length: conf.length() as usize,
+            strip_length: conf.len() as usize,
         }
     }
 
-    pub fn set_leds(&mut self, led_colors: Vec<RGB8>) {
+    pub fn set_leds(&mut self, led_colors: &[RGB8]) {
         if led_colors.len() != self.strip_length {
             println!(
                 "Wrong strip length to set ({} is not {})",
