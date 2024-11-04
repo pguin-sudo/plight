@@ -129,16 +129,16 @@ pub fn hex_to_rgb(hex: &str) -> Rgb<u8> {
 }
 
 // #[deprecated]
-pub fn rotate_smooth(colors: &[Rgb<u8>], value: f32) -> Vec<Rgb<u8>> {
+pub fn rotate_smooth(colors: &[Rgb<u8>], speed: f32) -> Vec<Rgb<u8>> {
     let mut result = Vec::<Rgb<u8>>::with_capacity(colors.len());
     for i in 0..(colors.len() - 1) {
         result.push(colors[i].map2(&colors[i + 1], |channel1, chanel2| {
-            (channel1 as f32 * value).round() as u8 + (chanel2 as f32 * (1.0 - value)).round() as u8
+            (channel1 as f32 * speed).round() as u8 + (chanel2 as f32 * (1.0 - speed)).round() as u8
         }))
     }
     result.push(
         colors[colors.len() - 1].map2(&colors[0], |channel1, chanel2| {
-            (channel1 as f32 * value).round() as u8 + (chanel2 as f32 * (1.0 - value)).round() as u8
+            (channel1 as f32 * speed).round() as u8 + (chanel2 as f32 * (1.0 - speed)).round() as u8
         }),
     );
 

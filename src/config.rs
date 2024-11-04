@@ -60,12 +60,10 @@ impl StripConf {
 pub struct TintConf {
     #[config(default = "GRB")]
     pub order: String,
-    #[config(default = 0.2)]
-    pub gamma: f32,
-    #[config(default = 1)]
-    pub contrast: f32,
-    #[config(default = 0.9)]
-    pub saturation: f32,
+    #[config(default = [0.2, 0.2, 0.2])]
+    pub gamma: [f32; 3],
+    #[config(default = [1.0, 0.9, 0.9])]
+    pub saturation: [f32; 3],
 }
 
 #[derive(Config)]
