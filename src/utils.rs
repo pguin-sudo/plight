@@ -1,4 +1,4 @@
-use image::{ImageBuffer, Pixel, Rgb};
+use image::{ImageBuffer, Pixel, Rgb, Rgba};
 use ndarray::{s, Array2};
 
 use crate::config::StripConf;
@@ -126,6 +126,25 @@ pub fn hex_to_rgb(hex: &str) -> Rgb<u8> {
     let g = u8::from_str_radix(&hex[2..4], 16).unwrap();
     let b = u8::from_str_radix(&hex[4..6], 16).unwrap();
     Rgb::<u8>::from([r, g, b])
+}
+
+pub fn rgba8_to_rgb8(
+    input: image::ImageBuffer<Rgba<u8>, Vec<u8>>,
+) -> image::ImageBuffer<Rgb<u8>, Vec<u8>> {
+    let width = input.width() as usize;
+    let height = input.height() as usize;
+
+    let input: &Vec<u8> = input.as_raw();
+
+    let mut output_data = vec![0u8; width * height * 3];
+
+    let mut i = 0;
+    for chunk in input.chunks(4) {
+        output_data[i..i + 3].copy_from_slice(&chunk[0..3]);
+        i += 3;
+    }
+
+    image::ImageBuffer::from_raw(width as u32, height as u32, output_data).unwrap()
 }
 
 // #[deprecated]
