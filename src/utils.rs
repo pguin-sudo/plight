@@ -1,6 +1,5 @@
-use image::{ImageBuffer, Rgb};
+use image::{ImageBuffer, Pixel, Rgb};
 use ndarray::{s, Array2};
-use rgb::RGB8;
 
 use crate::config::StripConf;
 
@@ -8,14 +7,14 @@ pub fn parse_image<F>(
     img: &ImageBuffer<Rgb<u8>, Vec<u8>>,
     mut process: F,
     strip_config: &StripConf,
-) -> Vec<RGB8>
+) -> Vec<Rgb<u8>>
 where
-    F: FnMut(&[Rgb<u8>]) -> RGB8,
+    F: FnMut(&[Rgb<u8>]) -> Rgb<u8>,
 {
     let dim = img.dimensions();
     let (width_p, height_p) = (dim.0 as usize, dim.1 as usize);
 
-    let mut colors = Vec::<RGB8>::with_capacity(
+    let mut colors = Vec::<Rgb<u8>>::with_capacity(
         (2 * (strip_config.width + strip_config.height) - strip_config.bottom_gap).into(),
     );
 
@@ -100,7 +99,7 @@ where
     colors
 }
 
-pub fn average_color(pixels: &[Rgb<u8>]) -> RGB8 {
+pub fn average_color(pixels: &[Rgb<u8>]) -> Rgb<u8> {
     let total_pixels = pixels.len() as u64;
 
     let mut total_r: u64 = 0;
@@ -118,13 +117,30 @@ pub fn average_color(pixels: &[Rgb<u8>]) -> RGB8 {
     let avg_g = (total_g / total_pixels) as u8;
     let avg_b = (total_b / total_pixels) as u8;
 
-    RGB8::new(avg_r, avg_g, avg_b)
+    Rgb::<u8>::from([avg_r, avg_g, avg_b])
 }
 
-pub fn hex_to_rgb(hex: &str) -> RGB8 {
+pub fn hex_to_rgb(hex: &str) -> Rgb<u8> {
     let hex = hex.trim_start_matches('#');
     let r = u8::from_str_radix(&hex[0..2], 16).unwrap();
     let g = u8::from_str_radix(&hex[2..4], 16).unwrap();
     let b = u8::from_str_radix(&hex[4..6], 16).unwrap();
-    RGB8::new(r, g, b)
+    Rgb::<u8>::from([r, g, b])
+}
+
+// #[deprecated]
+pub fn rotate_smooth(colors: &[Rgb<u8>], value: f32) -> Vec<Rgb<u8>> {
+    let mut result = Vec::<Rgb<u8>>::with_capacity(colors.len());
+    for i in 0..(colors.len() - 1) {
+        result.push(colors[i].map2(&colors[i + 1], |channel1, chanel2| {
+            (channel1 as f32 * value).round() as u8 + (chanel2 as f32 * (1.0 - value)).round() as u8
+        }))
+    }
+    result.push(
+        colors[colors.len() - 1].map2(&colors[0], |channel1, chanel2| {
+            (channel1 as f32 * value).round() as u8 + (chanel2 as f32 * (1.0 - value)).round() as u8
+        }),
+    );
+
+    result
 }

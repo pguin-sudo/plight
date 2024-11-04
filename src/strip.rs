@@ -1,5 +1,5 @@
+use image::Rgb;
 use rand::random;
-use rgb::RGB8;
 use serialport::{self, SerialPort};
 
 use crate::config::{StripConf, TintConf};
@@ -23,7 +23,7 @@ impl Strip {
         }
     }
 
-    pub fn set_leds(&mut self, led_colors: &[RGB8]) {
+    pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) {
         if led_colors.len() != self.strip_length {
             println!(
                 "Wrong strip length to set ({} is not {})",
@@ -43,14 +43,14 @@ impl Strip {
         let _ = self.port.write(&[lo]);
         let _ = self.port.write(&[chk]);
 
-        for rgba in led_colors {
+        for rgb in led_colors {
             let (r, g, b) = match self.tint_conf.order.as_str() {
-                "RGB" => (rgba.r, rgba.g, rgba.b),
-                "GRB" => (rgba.g, rgba.r, rgba.b),
-                "BRG" => (rgba.b, rgba.r, rgba.g),
-                "BGR" => (rgba.b, rgba.g, rgba.r),
-                "RBG" => (rgba.r, rgba.b, rgba.g),
-                _ => (rgba.r, rgba.g, rgba.b),
+                "RGB" => (rgb.0[0], rgb.0[1], rgb.0[2]),
+                "GRB" => (rgb.0[1], rgb.0[0], rgb.0[2]),
+                "BRG" => (rgb.0[2], rgb.0[0], rgb.0[1]),
+                "BGR" => (rgb.0[2], rgb.0[1], rgb.0[0]),
+                "RBG" => (rgb.0[0], rgb.0[2], rgb.0[1]),
+                _ => (rgb.0[0], rgb.0[1], rgb.0[2]),
             };
 
             let (r, g, b) = self.apply_gamma_contrast_saturation(r, g, b);

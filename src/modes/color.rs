@@ -1,5 +1,5 @@
 use confique::Config;
-use rgb::RGB8;
+use image::Rgb;
 use tokio::time::{sleep, Duration};
 
 use crate::{config::Conf, modes::Mode};
@@ -17,12 +17,12 @@ pub struct ColorModConf {
 impl Mode {
     pub async fn poll_color<F>(&self, config: &Conf, mut draw: F)
     where
-        F: FnMut(&[RGB8]),
+        F: FnMut(&[Rgb<u8>]),
     {
         let length: usize = config.strip.len().into();
         loop {
             let [r, g, b] = config.modes.color.color;
-            let colors = vec![RGB8::new(r, g, b); length];
+            let colors = vec![Rgb::<u8>::from([r, g, b]); length];
             draw(&colors);
             sleep(Duration::from_millis(config.modes.color.update_rate)).await;
         }

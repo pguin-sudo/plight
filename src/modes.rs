@@ -1,4 +1,4 @@
-use rgb::RGB8;
+use image::Rgb;
 use serde::{Deserialize, Serialize};
 
 pub mod cava_wall_dcol;
@@ -17,7 +17,7 @@ pub enum Mode {
 impl Mode {
     pub async fn poll<F>(&self, config: &Conf, draw: F)
     where
-        F: FnMut(&[RGB8]),
+        F: FnMut(&[Rgb<u8>]),
     {
         match self {
             Mode::CavaWallDcol => self.poll_cava_wall_dcol(config, draw).await,

@@ -1,6 +1,6 @@
 use confique::FileFormat;
 use confique::{Config, File};
-use rgb::RGB8;
+use image::Rgb;
 use std::path::PathBuf;
 use tokio::time::{sleep, Duration};
 
@@ -19,7 +19,7 @@ pub struct CavaWallDcolModConf {
 impl Mode {
     pub async fn poll_cava_wall_dcol<F>(&self, config: &Conf, mut draw: F)
     where
-        F: FnMut(&[RGB8]),
+        F: FnMut(&[Rgb<u8>]),
     {
         const GRADIENT_LENGTH: usize = 7;
 
@@ -31,7 +31,7 @@ impl Mode {
             )
             .expect("Error loading config");
 
-            let gradient_colors: [rgb::Rgb<u8>; GRADIENT_LENGTH] = [
+            let gradient_colors: [Rgb<u8>; GRADIENT_LENGTH] = [
                 hex_to_rgb(&cava_gradients.color.gradient_color_8),
                 hex_to_rgb(&cava_gradients.color.gradient_color_7),
                 hex_to_rgb(&cava_gradients.color.gradient_color_6),
@@ -41,7 +41,7 @@ impl Mode {
                 hex_to_rgb(&cava_gradients.color.gradient_color_2),
             ];
 
-            let mut colors = Vec::<RGB8>::with_capacity(
+            let mut colors = Vec::<Rgb<u8>>::with_capacity(
                 2 * (config.strip.width + config.strip.height) - config.strip.bottom_gap,
             );
 

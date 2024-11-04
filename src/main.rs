@@ -1,5 +1,3 @@
-use rgb::RGB8;
-
 mod config;
 mod modes;
 mod strip;
@@ -18,10 +16,6 @@ async fn main() {
 
     let mode = config.mode;
     println!("Current mode is \"{:?}\"", mode);
-
-    // Clean up
-    let colors = vec![RGB8::new(0, 0, 0); config.strip.len()];
-    strip.set_leds(&colors);
 
     // Start polling
     mode.poll(&config, |f| strip.set_leds(f)).await;
