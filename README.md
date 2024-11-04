@@ -87,8 +87,8 @@ KERNEL=="ttyUSBX", MODE="0777"
 Run the following commands to start and enable the daemon:
 
 ```bash
-sudo systemctl --user start plight.service
-sudo systemctl --user enable plight.service
+systemctl --user start plight.service
+systemctl --user enable plight.service
 ```
 
 ### Step 4: Check the Logs
