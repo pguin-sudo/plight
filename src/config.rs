@@ -1,5 +1,4 @@
 use confique::{toml::FormatOptions, Config};
-use tokio::sync::RwLock;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -14,8 +13,8 @@ use crate::modes::wallpaper::WallpaperModConf;
 use crate::modes::Mode;
 
 lazy_static! {
-    // ? Maybe I should use just reference there except RwLock
-    pub static ref CONFIG: RwLock<Conf> = RwLock::new(Conf::new());
+    // ? Maybe I should use RwLock there
+    pub static ref CONFIG: Conf = Conf::new();
 }
 
 #[derive(Config)]

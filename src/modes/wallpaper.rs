@@ -29,7 +29,7 @@ impl Mode {
         F: FnMut(&[Rgb<u8>]),
     {
         let mut command;
-        let path_to_wallpaper = match CONFIG.read().await.modes.wallpaper.engine {
+        let path_to_wallpaper = match CONFIG.modes.wallpaper.engine {
             WallpaperEngine::Swww => {
                 command = Command::new("swww");
                 command.args(["query"])
@@ -50,14 +50,14 @@ impl Mode {
             let output_str = str::from_utf8(&output.stdout).expect("Error while loading image");
 
             if output_str == previous_output_str {
-                if CONFIG.read().await.modes.wallpaper.rotation_speed != 0.0 {
-                    colors = rotate_smooth(&mut colors, CONFIG.read().await.modes.wallpaper.rotation_speed);
+                if CONFIG.modes.wallpaper.rotation_speed != 0.0 {
+                    colors = rotate_smooth(&mut colors, CONFIG.modes.wallpaper.rotation_speed);
                     draw(&colors);
-                    sleep(Duration::from_millis(CONFIG.read().await.modes.wallpaper.update_rate)).await;
+                    sleep(Duration::from_millis(CONFIG.modes.wallpaper.update_rate)).await;
                     continue;
                 }
 
-                sleep(Duration::from_millis(CONFIG.read().await.modes.wallpaper.update_rate)).await;
+                sleep(Duration::from_millis(CONFIG.modes.wallpaper.update_rate)).await;
                 continue;
             }
 
@@ -78,7 +78,7 @@ impl Mode {
             colors = parse_image(&image, average_color).await;
             draw(&colors);
 
-            sleep(Duration::from_millis(CONFIG.read().await.modes.wallpaper.update_rate)).await;
+            sleep(Duration::from_millis(CONFIG.modes.wallpaper.update_rate)).await;
         }
     }
 }

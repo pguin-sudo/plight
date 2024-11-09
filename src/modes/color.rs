@@ -19,12 +19,12 @@ impl Mode {
     where
         F: FnMut(&[Rgb<u8>]),
     {
-        let length: usize = CONFIG.read().await.strip.len().into();
+        let length: usize = CONFIG.strip.len().into();
         loop {
-            let [r, g, b] = CONFIG.read().await.modes.color.color;
+            let [r, g, b] = CONFIG.modes.color.color;
             let colors = vec![Rgb::<u8>::from([r, g, b]); length];
             draw(&colors);
-            sleep(Duration::from_millis(CONFIG.read().await.modes.color.update_rate)).await;
+            sleep(Duration::from_millis(CONFIG.modes.color.update_rate)).await;
         }
     }
 }

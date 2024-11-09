@@ -26,7 +26,7 @@ impl Mode {
 
         loop {
             let cava_gradients = CavaGradientsConf::from_partial(
-                File::with_format(&CONFIG.read().await.modes.cava_wall_dcol.path_to_dcol, FileFormat::Toml)
+                File::with_format(&CONFIG.modes.cava_wall_dcol.path_to_dcol, FileFormat::Toml)
                     .load()
                     .expect("Error loading config"),
             )
@@ -43,39 +43,39 @@ impl Mode {
             ];
 
             let mut colors = Vec::<Rgb<u8>>::with_capacity(
-                2 * (CONFIG.read().await.strip.width + CONFIG.read().await.strip.height) - CONFIG.read().await.strip.bottom_gap,
+                2 * (CONFIG.strip.width + CONFIG.strip.height) - CONFIG.strip.bottom_gap,
             );
 
             // Bottom right
             colors.extend_from_slice(&vec![
                 gradient_colors[GRADIENT_LENGTH - 1];
-                (CONFIG.read().await.strip.width - CONFIG.read().await.strip.bottom_gap) / 2
+                (CONFIG.strip.width - CONFIG.strip.bottom_gap) / 2
             ]);
 
             // Right
-            for i in 0..CONFIG.read().await.strip.height {
-                let color_index = (i * GRADIENT_LENGTH / CONFIG.read().await.strip.height) % GRADIENT_LENGTH;
+            for i in 0..CONFIG.strip.height {
+                let color_index = (i * GRADIENT_LENGTH / CONFIG.strip.height) % GRADIENT_LENGTH;
                 colors.push(gradient_colors[GRADIENT_LENGTH - 1 - color_index]);
             }
 
             // Top
-            colors.extend_from_slice(&vec![gradient_colors[0]; CONFIG.read().await.strip.width.into()]);
+            colors.extend_from_slice(&vec![gradient_colors[0]; CONFIG.strip.width.into()]);
 
             // Left
-            for i in 0..CONFIG.read().await.strip.height {
-                let color_index = (i * GRADIENT_LENGTH / CONFIG.read().await.strip.height) % GRADIENT_LENGTH;
+            for i in 0..CONFIG.strip.height {
+                let color_index = (i * GRADIENT_LENGTH / CONFIG.strip.height) % GRADIENT_LENGTH;
                 colors.push(gradient_colors[color_index]);
             }
 
             // Bottom left
             colors.extend_from_slice(&vec![
                 gradient_colors[GRADIENT_LENGTH - 1];
-                (CONFIG.read().await.strip.width - CONFIG.read().await.strip.bottom_gap) / 2
+                (CONFIG.strip.width - CONFIG.strip.bottom_gap) / 2
             ]);
 
             draw(&colors);
             sleep(Duration::from_millis(
-                CONFIG.read().await.modes.cava_wall_dcol.update_rate,
+                CONFIG.modes.cava_wall_dcol.update_rate,
             ))
             .await;
         }

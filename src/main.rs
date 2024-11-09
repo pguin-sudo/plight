@@ -8,10 +8,10 @@ use strip::Strip;
 
 #[tokio::main]
 async fn main() {
-    let mut strip = Strip::new(&CONFIG.read().await.strip);
+    let mut strip = Strip::new(&CONFIG.strip);
     println!("Strip has set up successfully");
 
-    let mode = CONFIG.read().await.mode;
+    let mode = CONFIG.mode;
     println!("Current mode is \"{:?}\"", mode);
 
     // Start polling

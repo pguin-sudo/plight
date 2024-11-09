@@ -27,7 +27,8 @@ impl Mode {
             // ? Maybe there is better way to convert buffer to buffer without alpha
             draw(&parse_image(&rgba8_to_rgb8(image), average_color).await);
 
-            sleep(Duration::from_millis(CONFIG.read().await.modes.screen.update_rate)).await;
+            sleep(Duration::from_millis(CONFIG.modes.screen.update_rate)).await;
         }
     }
 }
+
