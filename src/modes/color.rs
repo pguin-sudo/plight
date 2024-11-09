@@ -2,7 +2,7 @@ use confique::Config;
 use image::Rgb;
 use tokio::time::{sleep, Duration};
 
-use crate::{config::Conf, modes::Mode};
+use crate::{config::CONFIG, modes::Mode};
 
 #[derive(Config)]
 pub struct ColorModConf {
@@ -15,16 +15,16 @@ pub struct ColorModConf {
 }
 
 impl Mode {
-    pub async fn poll_color<F>(&self, config: &Conf, mut draw: F)
+    pub async fn poll_color<F>(&self, mut draw: F)
     where
         F: FnMut(&[Rgb<u8>]),
     {
-        let length: usize = config.strip.len().into();
+        let length: usize = CONFIG.read().await.strip.len().into();
         loop {
-            let [r, g, b] = config.modes.color.color;
+            let [r, g, b] = CONFIG.read().await.modes.color.color;
             let colors = vec![Rgb::<u8>::from([r, g, b]); length];
             draw(&colors);
-            sleep(Duration::from_millis(config.modes.color.update_rate)).await;
+            sleep(Duration::from_millis(CONFIG.read().await.modes.color.update_rate)).await;
         }
     }
 }

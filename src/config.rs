@@ -1,15 +1,22 @@
 use confique::{toml::FormatOptions, Config};
+use tokio::sync::RwLock;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use lazy_static::lazy_static;
 
 use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
 use crate::modes::color::ColorModConf;
 use crate::modes::screen::ScreenModConf;
 use crate::modes::wallpaper::WallpaperModConf;
 use crate::modes::Mode;
+
+lazy_static! {
+    // ? Maybe I should use just reference there except RwLock
+    pub static ref CONFIG: RwLock<Conf> = RwLock::new(Conf::new());
+}
 
 #[derive(Config)]
 pub struct Conf {
@@ -23,6 +30,44 @@ pub struct Conf {
     // Several PLight modes config
     #[config(nested)]
     pub modes: ModesConf,
+}
+
+impl Conf {
+    pub fn new() -> Conf {
+        let default_config_path = get_default_config_path();
+        create_new_config(&default_config_path);
+        Conf::from_file(default_config_path).expect("Error loading config")
+    }
+}
+
+fn get_default_config_path() -> String {
+    let home_dir = env::var("HOME").expect("Unable to get HOME directory");
+    format!("{}/.config/plight/config.toml", home_dir)
+}
+
+fn create_new_config(default_config_path: &str) {
+    let binding = PathBuf::from(default_config_path);
+    let parent_dir = binding.parent().unwrap();
+    if let Err(e) = fs::create_dir_all(parent_dir) {
+        eprintln!("Error creating directories: {}", e);
+        return;
+    }
+
+    if !PathBuf::from(default_config_path).exists() {
+        match File::create(default_config_path) {
+            Ok(mut file) => {
+                let content = confique::toml::template::<Conf>(FormatOptions::default());
+                if let Err(e) = file.write_all(content.as_bytes()) {
+                    eprintln!("Error writing to config file: {}", e);
+                } else {
+                    println!("A new config has been created at `{}`", default_config_path);
+                }
+            }
+            Err(e) => eprintln!("Error creating config file: {}", e),
+        }
+    } else {
+        println!("Config file already exists at `{}`", default_config_path);
+    }
 }
 
 #[derive(Clone, Config)]
@@ -79,40 +124,3 @@ pub struct ModesConf {
     pub wallpaper: WallpaperModConf,
 }
 
-impl Conf {
-    pub fn new() -> Conf {
-        let default_config_path = get_default_config_path();
-        create_new_config(&default_config_path);
-        Conf::from_file(default_config_path).expect("Error loading config")
-    }
-}
-
-fn get_default_config_path() -> String {
-    let home_dir = env::var("HOME").expect("Unable to get HOME directory");
-    format!("{}/.config/plight/config.toml", home_dir)
-}
-
-fn create_new_config(default_config_path: &str) {
-    let binding = PathBuf::from(default_config_path);
-    let parent_dir = binding.parent().unwrap();
-    if let Err(e) = fs::create_dir_all(parent_dir) {
-        eprintln!("Error creating directories: {}", e);
-        return;
-    }
-
-    if !PathBuf::from(default_config_path).exists() {
-        match File::create(default_config_path) {
-            Ok(mut file) => {
-                let content = confique::toml::template::<Conf>(FormatOptions::default());
-                if let Err(e) = file.write_all(content.as_bytes()) {
-                    eprintln!("Error writing to config file: {}", e);
-                } else {
-                    println!("A new config has been created at `{}`", default_config_path);
-                }
-            }
-            Err(e) => eprintln!("Error creating config file: {}", e),
-        }
-    } else {
-        println!("Config file already exists at `{}`", default_config_path);
-    }
-}

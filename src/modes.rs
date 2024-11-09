@@ -6,8 +6,6 @@ pub mod color;
 pub mod screen;
 pub mod wallpaper;
 
-use crate::config::Conf;
-
 // ! pacman -S libxcb libxrandr dbus
 
 #[derive(Deserialize, Serialize, Clone, Copy, Debug)]
@@ -19,15 +17,15 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub async fn poll<F>(&self, config: &Conf, draw: F)
+    pub async fn poll<F>(&self, draw: F)
     where
         F: FnMut(&[Rgb<u8>]),
     {
         match self {
-            Mode::CavaWallDcol => self.poll_cava_wall_dcol(config, draw).await,
-            Mode::Color => self.poll_color(config, draw).await,
-            Mode::Screen => self.poll_screen(config, draw).await,
-            Mode::Wallpaper => self.poll_wallpaper(config, draw).await,
+            Mode::CavaWallDcol => self.poll_cava_wall_dcol(draw).await,
+            Mode::Color => self.poll_color(draw).await,
+            Mode::Screen => self.poll_screen(draw).await,
+            Mode::Wallpaper => self.poll_wallpaper(draw).await,
         };
     }
 }

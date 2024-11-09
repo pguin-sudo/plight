@@ -5,8 +5,9 @@ use std::str;
 use tokio::process::Command;
 use tokio::time::{sleep, Duration};
 
+use crate::config::CONFIG;
 use crate::utils::{average_color, parse_image, rotate_smooth};
-use crate::{config::Conf, modes::Mode};
+use crate::modes::Mode;
 
 #[derive(Config)]
 pub struct WallpaperModConf {
@@ -17,18 +18,18 @@ pub struct WallpaperModConf {
     #[config(default = "Swww")]
     pub engine: WallpaperEngine,
 
-    // ! THIS IS NOT WORK CORRECTLY
+    // ! THIS IS NOT WORKING CORRECTLY
     #[config(default = 0)]
     pub rotation_speed: f32,
 }
 
 impl Mode {
-    pub async fn poll_wallpaper<F>(&self, config: &Conf, mut draw: F)
+    pub async fn poll_wallpaper<F>(&self, mut draw: F)
     where
         F: FnMut(&[Rgb<u8>]),
     {
         let mut command;
-        let path_to_wallpaper = match config.modes.wallpaper.engine {
+        let path_to_wallpaper = match CONFIG.read().await.modes.wallpaper.engine {
             WallpaperEngine::Swww => {
                 command = Command::new("swww");
                 command.args(["query"])
@@ -49,14 +50,14 @@ impl Mode {
             let output_str = str::from_utf8(&output.stdout).expect("Error while loading image");
 
             if output_str == previous_output_str {
-                if config.modes.wallpaper.rotation_speed != 0.0 {
-                    colors = rotate_smooth(&mut colors, config.modes.wallpaper.rotation_speed);
+                if CONFIG.read().await.modes.wallpaper.rotation_speed != 0.0 {
+                    colors = rotate_smooth(&mut colors, CONFIG.read().await.modes.wallpaper.rotation_speed);
                     draw(&colors);
-                    sleep(Duration::from_millis(config.modes.wallpaper.update_rate)).await;
+                    sleep(Duration::from_millis(CONFIG.read().await.modes.wallpaper.update_rate)).await;
                     continue;
                 }
 
-                sleep(Duration::from_millis(config.modes.wallpaper.update_rate)).await;
+                sleep(Duration::from_millis(CONFIG.read().await.modes.wallpaper.update_rate)).await;
                 continue;
             }
 
@@ -74,10 +75,10 @@ impl Mode {
                 .expect("Error while opening image")
                 .into_rgb8();
 
-            colors = parse_image(&image, average_color, &config.strip);
+            colors = parse_image(&image, average_color).await;
             draw(&colors);
 
-            sleep(Duration::from_millis(config.modes.wallpaper.update_rate)).await;
+            sleep(Duration::from_millis(CONFIG.read().await.modes.wallpaper.update_rate)).await;
         }
     }
 }

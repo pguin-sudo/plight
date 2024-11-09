@@ -4,7 +4,8 @@ use image::Rgb;
 use std::path::PathBuf;
 use tokio::time::{sleep, Duration};
 
-use crate::{config::Conf, modes::Mode, utils::hex_to_rgb};
+use crate::config::CONFIG;
+use crate::{modes::Mode, utils::hex_to_rgb};
 
 #[derive(Config)]
 pub struct CavaWallDcolModConf {
@@ -17,7 +18,7 @@ pub struct CavaWallDcolModConf {
 }
 
 impl Mode {
-    pub async fn poll_cava_wall_dcol<F>(&self, config: &Conf, mut draw: F)
+    pub async fn poll_cava_wall_dcol<F>(&self, mut draw: F)
     where
         F: FnMut(&[Rgb<u8>]),
     {
@@ -25,7 +26,7 @@ impl Mode {
 
         loop {
             let cava_gradients = CavaGradientsConf::from_partial(
-                File::with_format(&config.modes.cava_wall_dcol.path_to_dcol, FileFormat::Toml)
+                File::with_format(&CONFIG.read().await.modes.cava_wall_dcol.path_to_dcol, FileFormat::Toml)
                     .load()
                     .expect("Error loading config"),
             )
@@ -42,39 +43,39 @@ impl Mode {
             ];
 
             let mut colors = Vec::<Rgb<u8>>::with_capacity(
-                2 * (config.strip.width + config.strip.height) - config.strip.bottom_gap,
+                2 * (CONFIG.read().await.strip.width + CONFIG.read().await.strip.height) - CONFIG.read().await.strip.bottom_gap,
             );
 
             // Bottom right
             colors.extend_from_slice(&vec![
                 gradient_colors[GRADIENT_LENGTH - 1];
-                (config.strip.width - config.strip.bottom_gap) / 2
+                (CONFIG.read().await.strip.width - CONFIG.read().await.strip.bottom_gap) / 2
             ]);
 
             // Right
-            for i in 0..config.strip.height {
-                let color_index = (i * GRADIENT_LENGTH / config.strip.height) % GRADIENT_LENGTH;
+            for i in 0..CONFIG.read().await.strip.height {
+                let color_index = (i * GRADIENT_LENGTH / CONFIG.read().await.strip.height) % GRADIENT_LENGTH;
                 colors.push(gradient_colors[GRADIENT_LENGTH - 1 - color_index]);
             }
 
             // Top
-            colors.extend_from_slice(&vec![gradient_colors[0]; config.strip.width.into()]);
+            colors.extend_from_slice(&vec![gradient_colors[0]; CONFIG.read().await.strip.width.into()]);
 
             // Left
-            for i in 0..config.strip.height {
-                let color_index = (i * GRADIENT_LENGTH / config.strip.height) % GRADIENT_LENGTH;
+            for i in 0..CONFIG.read().await.strip.height {
+                let color_index = (i * GRADIENT_LENGTH / CONFIG.read().await.strip.height) % GRADIENT_LENGTH;
                 colors.push(gradient_colors[color_index]);
             }
 
             // Bottom left
             colors.extend_from_slice(&vec![
                 gradient_colors[GRADIENT_LENGTH - 1];
-                (config.strip.width - config.strip.bottom_gap) / 2
+                (CONFIG.read().await.strip.width - CONFIG.read().await.strip.bottom_gap) / 2
             ]);
 
             draw(&colors);
             sleep(Duration::from_millis(
-                config.modes.cava_wall_dcol.update_rate,
+                CONFIG.read().await.modes.cava_wall_dcol.update_rate,
             ))
             .await;
         }
