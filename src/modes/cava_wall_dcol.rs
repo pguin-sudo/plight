@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use tokio::time::{sleep, Duration};
 
 use crate::config::CONFIG;
+use crate::strip::Strip;
 use crate::{modes::Mode, utils::hex_to_rgb};
 
 #[derive(Config)]
@@ -18,10 +19,7 @@ pub struct CavaWallDcolModConf {
 }
 
 impl Mode {
-    pub async fn poll_cava_wall_dcol<F>(&self, mut draw: F)
-    where
-        F: FnMut(&[Rgb<u8>]),
-    {
+    pub async fn poll_cava_wall_dcol(&self, strip: &mut Strip) {
         const GRADIENT_LENGTH: usize = 7;
 
         loop {
@@ -73,7 +71,7 @@ impl Mode {
                 (CONFIG.strip.width - CONFIG.strip.bottom_gap) / 2
             ]);
 
-            draw(&colors);
+            strip.set_leds(&colors);
             sleep(Duration::from_millis(
                 CONFIG.modes.cava_wall_dcol.update_rate,
             ))

@@ -15,5 +15,5 @@ async fn main() {
     println!("Current mode is \"{:?}\"", mode);
 
     // Start polling
-    mode.poll(|f| strip.set_leds(f)).await;
+    mode.poll(&mut strip).await;
 }
