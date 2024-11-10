@@ -80,7 +80,7 @@ pub struct StripConf {
     // Width of coreners (pixels)
     #[config(default = 0)]
     pub corner_size_p: usize,
-    #[config(default = 100)]
+    #[config(default = 200)]
     pub thickness_p: usize,
     /// #[config(default = false)]
     /// pub clockwise: bool,
@@ -109,6 +109,8 @@ pub struct TintConf {
     pub gamma: [f32; 3],
     #[config(default = [1.0, 0.9, 0.9])]
     pub saturation: [f32; 3],
+    #[config(default = [1.0, 1.0, 1.0])]
+    pub brightness: [f32; 3],
 }
 
 #[derive(Config)]

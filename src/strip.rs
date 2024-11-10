@@ -65,6 +65,10 @@ impl Strip {
 
         let (r, g, b) = self.adjust_saturation(r, g, b, self.tint_conf.saturation);
 
+        let r = self.apply_brightness(r, self.tint_conf.brightness[0]);
+        let g = self.apply_brightness(g, self.tint_conf.brightness[1]);
+        let b = self.apply_brightness(b, self.tint_conf.brightness[2]);
+
         (r, g, b)
     }
 
@@ -84,5 +88,9 @@ impl Strip {
             new_g.clamp(0.0, 255.0) as u8,
             new_b.clamp(0.0, 255.0) as u8,
         )
+    }
+
+    fn apply_brightness(&self, value: u8, brightness: f32) -> u8 {
+        (brightness * value as f32).round() as u8
     }
 }
