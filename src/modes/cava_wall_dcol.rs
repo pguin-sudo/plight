@@ -2,6 +2,7 @@ use confique::FileFormat;
 use confique::{Config, File};
 use image::Rgb;
 use std::path::PathBuf;
+use std::sync::Mutex;
 use tokio::time::{sleep, Duration};
 
 use crate::config::CONFIG;
@@ -19,7 +20,7 @@ pub struct CavaWallDcolModConf {
 }
 
 impl Mode {
-    pub async fn poll_cava_wall_dcol(&self, strip: &mut Strip) {
+    pub async fn poll_cava_wall_dcol(&self, strip: Mutex<Strip>) {
         const GRADIENT_LENGTH: usize = 7;
 
         loop {
@@ -71,7 +72,7 @@ impl Mode {
                 (CONFIG.strip.width - CONFIG.strip.bottom_gap) / 2
             ]);
 
-            strip.set_leds(&colors);
+            strip.lock().unwrap().set_leds(&colors);
             sleep(Duration::from_millis(
                 CONFIG.modes.cava_wall_dcol.update_rate,
             ))
