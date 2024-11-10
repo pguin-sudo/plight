@@ -5,8 +5,10 @@ edition = "2021"
 
 [dependencies]
 confique = { version = "0.2.6", features = ["toml"] }
+cpal = "0.15.3"
 crossterm = "0.28.1"
 delta = "0.2.1"
+hound = "3.5.1"
 image = "0.25.2"
 lazy_static = "1.5.0"
 ndarray = "0.16.1"

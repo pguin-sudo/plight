@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 
 use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
 use crate::modes::color::ColorModConf;
+use crate::modes::music::MusicModConf;
 use crate::modes::screen::ScreenModConf;
 use crate::modes::wallpaper::WallpaperModConf;
 use crate::modes::Mode;
@@ -118,9 +119,11 @@ pub struct ModesConf {
     #[config(nested)]
     pub color: ColorModConf,
     #[config(nested)]
+    pub screen: ScreenModConf,
+    #[config(nested)]
     pub cava_wall_dcol: CavaWallDcolModConf,
     #[config(nested)]
-    pub screen: ScreenModConf,
+    pub music: MusicModConf,
     #[config(nested)]
     pub wallpaper: WallpaperModConf,
 }

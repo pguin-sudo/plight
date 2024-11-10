@@ -3,14 +3,14 @@ mod modes;
 mod strip;
 mod utils;
 
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use config::CONFIG;
 use strip::Strip;
 
 #[tokio::main]
 async fn main() {
-    let strip = Mutex::new(Strip::new(&CONFIG.strip));
+    let strip = Arc::new(Mutex::new(Strip::new(&CONFIG.strip)));
     println!("Strip has set up successfully");
 
     let mode = CONFIG.mode;
