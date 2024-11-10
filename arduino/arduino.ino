@@ -61,4 +61,8 @@ waitLoop: while (!Serial.available());;
     leds[i].b = b;
   }
   FastLED.show();
+
+  Serial.write(prefix[2]);
+  Serial.write(prefix[1]);
+  Serial.write(prefix[0]);
 }

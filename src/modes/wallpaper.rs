@@ -7,7 +7,7 @@ use tokio::process::Command;
 use tokio::time::{sleep, Duration};
 
 use crate::config::CONFIG;
-use crate::strip::Strip;
+use crate::strip::{SetLedsError, Strip};
 use crate::utils::{average_color, parse_image, rotate_smooth};
 use crate::modes::Mode;
 
@@ -26,7 +26,7 @@ pub struct WallpaperModConf {
 }
 
 impl Mode {
-    pub async fn poll_wallpaper(&self, strip: Mutex<Strip>) {
+    pub async fn poll_wallpaper(&self, strip: &Mutex<Strip>) -> Result<(), SetLedsError> {
         let mut command;
         let path_to_wallpaper = match CONFIG.modes.wallpaper.engine {
             WallpaperEngine::Swww => {
@@ -51,7 +51,7 @@ impl Mode {
             if output_str == previous_output_str {
                 if CONFIG.modes.wallpaper.rotation_speed != 0.0 {
                     colors = rotate_smooth(&mut colors, CONFIG.modes.wallpaper.rotation_speed);
-                    strip.lock().unwrap().set_leds(&colors);
+                    strip.lock().unwrap().set_leds(&colors)?;
                     sleep(Duration::from_millis(CONFIG.modes.wallpaper.update_rate)).await;
                     continue;
                 }
@@ -75,7 +75,7 @@ impl Mode {
                 .into_rgb8();
 
             colors = parse_image(&image, average_color).await;
-            strip.lock().unwrap().set_leds(&colors);
+            strip.lock().unwrap().set_leds(&colors)?;
 
             sleep(Duration::from_millis(CONFIG.modes.wallpaper.update_rate)).await;
         }

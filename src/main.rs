@@ -16,6 +16,17 @@ async fn main() {
     let mode = CONFIG.mode;
     println!("Current mode is \"{:?}\"", mode);
 
-    // Start polling
-    mode.poll(strip).await;
+    loop {
+        // Start polling
+        match mode.poll(&strip).await {
+            Ok(_) => todo!(),
+            Err(e) => { 
+                match e {
+                    strip::SetLedsError::WrongLength(a, b) => panic!("Wrong length {} {}", a, b),
+                    strip::SetLedsError::WrongPostfix(a) => println!("Wrong postfix error: {:?}", a),
+                    strip::SetLedsError::ReadPostfix(a) => println!("Read prefix error: {:?}", a),
+                } 
+            },
+        }
+    }
 }

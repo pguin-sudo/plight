@@ -1,3 +1,5 @@
+use std::{io::Error, time::Duration};
+
 use image::Rgb;
 use rand::random;
 use serialport::{self, SerialPort};
@@ -12,10 +14,18 @@ pub struct Strip {
     strip_length: usize,
 }
 
+#[derive(Debug)]
+pub enum SetLedsError {
+    WrongLength(usize, usize),
+    WrongPostfix([u8; 3]),
+    ReadPostfix(Error),
+}
+
 impl Strip {
     pub fn new(conf: &StripConf) -> Strip {
         Strip {
             port: serialport::new(conf.serial_port.clone(), conf.baudrate)
+                .timeout(Duration::from_millis(1000))
                 .open()
                 .expect("Failed to open port"),
             tint_conf: conf.tint.clone(),
@@ -23,14 +33,9 @@ impl Strip {
         }
     }
 
-    pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) {
+    pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) -> Result<(), SetLedsError> {
         if led_colors.len() != self.strip_length {
-            println!(
-                "Wrong strip length to set ({} is not {})",
-                led_colors.len(),
-                self.strip_length
-            );
-            return;
+            return Err(SetLedsError::WrongLength(led_colors.len(), self.strip_length));
         }
 
         let _ = self.port.write(&PREFIX);
@@ -55,6 +60,16 @@ impl Strip {
 
             let (r, g, b) = self.apply_tint(r, g, b);
             let _ = self.port.write(&[r, g, b]);
+        }
+
+        let buf: &mut [u8; 3] = &mut [0; 3];
+        match self.port.read(buf) {
+            Ok(_) => {
+                buf.reverse();
+                if *buf == PREFIX { Ok(()) } 
+                else { Err(SetLedsError::WrongPostfix(*buf)) }
+            }
+            Err(e) => Err(SetLedsError::ReadPostfix(e))
         }
     }
 
