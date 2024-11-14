@@ -1,4 +1,4 @@
-use std::{io::Error, time::Duration};
+use std::{f32::consts::E, io::Error, time::Duration};
 
 use image::Rgb;
 use rand::random;
@@ -35,7 +35,10 @@ impl Strip {
 
     pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) -> Result<(), SetLedsError> {
         if led_colors.len() != self.strip_length {
-            return Err(SetLedsError::WrongLength(led_colors.len(), self.strip_length));
+            return Err(SetLedsError::WrongLength(
+                led_colors.len(),
+                self.strip_length,
+            ));
         }
 
         let _ = self.port.write(&PREFIX);
@@ -66,23 +69,26 @@ impl Strip {
         match self.port.read(buf) {
             Ok(_) => {
                 buf.reverse();
-                if *buf == PREFIX { Ok(()) } 
-                else { Err(SetLedsError::WrongPostfix(*buf)) }
+                if *buf == PREFIX {
+                    Ok(())
+                } else {
+                    Err(SetLedsError::WrongPostfix(*buf))
+                }
             }
-            Err(e) => Err(SetLedsError::ReadPostfix(e))
+            Err(e) => Err(SetLedsError::ReadPostfix(e)),
         }
     }
 
     fn apply_tint(&self, r: u8, g: u8, b: u8) -> (u8, u8, u8) {
-        let r = self.apply_gamma(r, self.tint_conf.gamma[0]);
-        let g = self.apply_gamma(g, self.tint_conf.gamma[1]);
-        let b = self.apply_gamma(b, self.tint_conf.gamma[2]);
+        let mut r = self.apply_gamma(r, self.tint_conf.gamma[0]);
+        let mut g = self.apply_gamma(g, self.tint_conf.gamma[1]);
+        let mut b = self.apply_gamma(b, self.tint_conf.gamma[2]);
 
-        let (r, g, b) = self.adjust_saturation(r, g, b, self.tint_conf.saturation);
+        (r, g, b) = self.adjust_saturation(r, g, b, self.tint_conf.saturation);
 
-        let r = self.apply_brightness(r, self.tint_conf.brightness[0]);
-        let g = self.apply_brightness(g, self.tint_conf.brightness[1]);
-        let b = self.apply_brightness(b, self.tint_conf.brightness[2]);
+        r = self.apply_brightness(r, self.tint_conf.brightness[0]);
+        g = self.apply_brightness(g, self.tint_conf.brightness[1]);
+        b = self.apply_brightness(b, self.tint_conf.brightness[2]);
 
         (r, g, b)
     }

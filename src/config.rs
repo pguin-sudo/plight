@@ -1,10 +1,10 @@
 use confique::{toml::FormatOptions, Config};
+use lazy_static::lazy_static;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
-use lazy_static::lazy_static;
 
 use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
 use crate::modes::color::ColorModConf;
@@ -112,6 +112,9 @@ pub struct TintConf {
     pub saturation: [f32; 3],
     #[config(default = [1.0, 1.0, 1.0])]
     pub brightness: [f32; 3],
+
+    #[config(default = true)]
+    pub log: bool,
 }
 
 #[derive(Config)]
@@ -127,4 +130,3 @@ pub struct ModesConf {
     #[config(nested)]
     pub wallpaper: WallpaperModConf,
 }
-

@@ -1,11 +1,10 @@
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use crate::strip::{SetLedsError, Strip};
 
 pub mod cava_wall_dcol;
 pub mod color;
-// pub mod music;
 pub mod music;
 pub mod screen;
 pub mod wallpaper;
@@ -22,7 +21,7 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub async fn poll(&self, strip: Mutex<Strip>) -> Result<(), SetLedsError> {
+    pub async fn poll(&self, strip: &Mutex<Strip>) -> Result<(), SetLedsError> {
         match self {
             Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip).await,
             Mode::Color => self.poll_color(strip).await,
