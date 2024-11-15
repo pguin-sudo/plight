@@ -11,8 +11,10 @@ use crate::modes::Mode;
 
 #[derive(Config)]
 pub struct MusicModConf {
-    #[config(default = 1.5)]
+    #[config(default = 1)]
     coefficient: f32,
+    #[config(default = 0.001)]
+    max_decrease: f32,
 }
 
 impl Mode {
@@ -23,14 +25,22 @@ impl Mode {
         let input_config = device.default_input_config().expect("Failed to get default input config");
         let stream_config: StreamConfig = input_config.into();
 
-        let sample  = Arc::new(RwLock::new(0_f32));
+        let sample  = Arc::new(Mutex::new(0_f32));
 
         let stream_sample = Arc::clone(&sample);        
         let stream = device.build_input_stream(
             &stream_config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
-                let mut s = stream_sample.write().unwrap();
-                *s = data.iter().cloned().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap_or(0_f32);
+                let mut s = stream_sample.lock().unwrap();
+                match data
+                    .iter()
+                    .cloned()
+                    .max_by(|a, b| a.partial_cmp(b).unwrap() ) {
+                    Some(max) => {
+                        *s = (*s + max) / 2_f32
+                    },
+                    None => {},
+                };
             },
             |err| eprintln!("Error occurred on stream: {:?}", err),
             None 
@@ -39,14 +49,33 @@ impl Mode {
         stream.play().expect("Failed to play stream");
 
         let length = CONFIG.strip.len();
+
+        let mut max: f32 = 0_f32;
         
         let mut prev_color = *Rgb::from_slice(&[202_u8, 126_u8, 137_u8]);
 
         loop {
             let mut color  = *Rgb::from_slice(&[202_u8, 126_u8, 137_u8]);
 
+            let mut sample = sample.lock().unwrap();
+
+            if *sample == 0_f32 {
+                continue;
+            }
+
+            if *sample > max {
+                max = *sample;
+                println!("New max level: {}", max)
+            }
+
+            max -= CONFIG.modes.music.max_decrease; 
+
+            let local_sample = *sample / max;          
+          
+            *sample = 0_f32;
+
             color.apply(|x| {
-                (x as f32 * CONFIG.modes.music.coefficient * *sample.read().unwrap()).round() as u8 
+                (x as f32 * CONFIG.modes.music.coefficient * local_sample).round() as u8 
             });
 
             let lerp_factor = 0.1;
@@ -66,6 +95,3 @@ fn lerp(start: f32, end: f32, factor: f32) -> f32 {
     start + factor * (end - start)
 }            
 
-
-
- 
