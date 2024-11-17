@@ -1,4 +1,5 @@
 mod config;
+mod errors;
 mod modes;
 mod strip;
 mod utils;
@@ -6,11 +7,16 @@ mod utils;
 use std::sync::Mutex;
 
 use config::CONFIG;
+use errors::Error::{
+    Config, ImageError, ParseIntError, SerialPort, Utf8Error, VarError, XCapError,
+};
+use errors::Error::{PostfixReading, WrongLength, WrongPostfix};
+use errors::Result;
 use strip::Strip;
 
 #[tokio::main]
-async fn main() {
-    let strip = Mutex::new(Strip::new(&CONFIG.strip));
+async fn main() -> Result<()> {
+    let strip = Mutex::new(Strip::new(&CONFIG.strip)?);
     println!("Strip has set up successfully");
 
     let mode = CONFIG.mode;
@@ -18,13 +24,22 @@ async fn main() {
 
     loop {
         // Start polling
-        match mode.poll(&strip).await {
-            Ok(_) => todo!(),
-            Err(e) => match e {
-                strip::SetLedsError::WrongLength(a, b) => panic!("Wrong length {} {}", a, b),
-                strip::SetLedsError::WrongPostfix(a) => println!("Wrong postfix error: {:?}", a),
-                strip::SetLedsError::ReadPostfix(a) => println!("Read prefix error: {:?}", a),
-            },
+        if let Err(e) = mode.poll(&strip).await {
+            match e {
+                WrongLength {
+                    given: _,
+                    actual: _,
+                } => panic!("{}", e),
+                PostfixReading(_) => println!("{}", e),
+                ParseIntError(_) => println!("{}", e),
+                WrongPostfix(_) => println!("{}", e),
+                ImageError(_) => println!("{}", e),
+                SerialPort(_) => panic!("{}", e),
+                Utf8Error(_) => panic!("{}", e),
+                XCapError(_) => panic!("{}", e),
+                VarError(_) => panic!("{}", e),
+                Config(_) => panic!("{}", e),
+            }
         }
     }
 }

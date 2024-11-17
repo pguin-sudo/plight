@@ -2,11 +2,10 @@ use confique::Config;
 use image::Rgb;
 use std::sync::Mutex;
 
-use crate::{
-    config::CONFIG,
-    modes::Mode,
-    strip::{SetLedsError, Strip},
-};
+use crate::config::CONFIG;
+use crate::errors::Result;
+use crate::modes::Mode;
+use crate::strip::Strip;
 
 #[derive(Config)]
 pub struct ColorModConf {
@@ -15,7 +14,7 @@ pub struct ColorModConf {
 }
 
 impl Mode {
-    pub async fn poll_color(&self, strip: &Mutex<Strip>) -> Result<(), SetLedsError> {
+    pub async fn poll_color(&self, strip: &Mutex<Strip>) -> Result<()> {
         let length: usize = CONFIG.strip.len().into();
         let mut prev_color = Rgb::from([0_u8, 0_u8, 0_u8]);
         loop {

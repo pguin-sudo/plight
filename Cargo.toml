@@ -5,13 +5,11 @@ edition = "2021"
 
 [dependencies]
 confique = { version = "0.2.6", features = ["toml"] }
-crossterm = "0.28.1"
-delta = "0.2.1"
+derive_more = { version = "1.0.0", features = ["display", "from"] }
 image = "0.25.2"
 lazy_static = "1.5.0"
 ndarray = "0.16.1"
 rand = "0.8.5"
-readonly = "0.2.12"
 serde = "1.0.210"
 serde_derive = "1.0.210"
 serialport = "4.5.1"

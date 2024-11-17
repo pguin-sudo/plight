@@ -1,10 +1,12 @@
-use std::{io::Error, time::Duration};
+use std::time::Duration;
 
 use image::Rgb;
 use rand::random;
 use serialport::{self, SerialPort};
 
 use crate::config::{StripConf, TintConf};
+use crate::errors::Error::{PostfixReading, WrongLength, WrongPostfix};
+use crate::errors::Result;
 
 const PREFIX: [u8; 3] = [89, 124, 234];
 
@@ -14,31 +16,23 @@ pub struct Strip {
     strip_length: usize,
 }
 
-#[derive(Debug)]
-pub enum SetLedsError {
-    WrongLength(usize, usize),
-    WrongPostfix([u8; 3]),
-    ReadPostfix(Error),
-}
-
 impl Strip {
-    pub fn new(conf: &StripConf) -> Strip {
-        Strip {
+    pub fn new(conf: &StripConf) -> Result<Strip> {
+        Ok(Strip {
             port: serialport::new(conf.serial_port.clone(), conf.baudrate)
                 .timeout(Duration::from_millis(1000))
-                .open()
-                .expect("Failed to open port"),
+                .open()?,
             tint_conf: conf.tint.clone(),
             strip_length: conf.len() as usize,
-        }
+        })
     }
 
-    pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) -> Result<(), SetLedsError> {
+    pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) -> Result<()> {
         if led_colors.len() != self.strip_length {
-            return Err(SetLedsError::WrongLength(
-                led_colors.len(),
-                self.strip_length,
-            ));
+            return Err(WrongLength {
+                given: led_colors.len(),
+                actual: self.strip_length,
+            });
         }
 
         let _ = self.port.write(&PREFIX);
@@ -72,10 +66,10 @@ impl Strip {
                 if *buf == PREFIX {
                     Ok(())
                 } else {
-                    Err(SetLedsError::WrongPostfix(*buf))
+                    Err(WrongPostfix(*buf))
                 }
             }
-            Err(e) => Err(SetLedsError::ReadPostfix(e)),
+            Err(e) => Err(PostfixReading(e)),
         }
     }
 

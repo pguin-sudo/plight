@@ -1,7 +1,7 @@
 use image::{ImageBuffer, Pixel, Rgb, Rgba};
 use ndarray::{s, Array2};
 
-use crate::config::CONFIG;
+use crate::{config::CONFIG, errors::Result};
 
 pub async fn parse_image<F>(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, mut process: F) -> Vec<Rgb<u8>>
 where
@@ -116,12 +116,12 @@ pub fn average_color(pixels: &[Rgb<u8>]) -> Rgb<u8> {
     Rgb::<u8>::from([avg_r, avg_g, avg_b])
 }
 
-pub fn hex_to_rgb(hex: &str) -> Rgb<u8> {
+pub fn hex_to_rgb(hex: &str) -> Result<Rgb<u8>> {
     let hex = hex.trim_start_matches('#');
-    let r = u8::from_str_radix(&hex[0..2], 16).unwrap();
-    let g = u8::from_str_radix(&hex[2..4], 16).unwrap();
-    let b = u8::from_str_radix(&hex[4..6], 16).unwrap();
-    Rgb::<u8>::from([r, g, b])
+    let r = u8::from_str_radix(&hex[0..2], 16)?;
+    let g = u8::from_str_radix(&hex[2..4], 16)?;
+    let b = u8::from_str_radix(&hex[4..6], 16)?;
+    Ok(Rgb::<u8>::from([r, g, b]))
 }
 
 pub fn rgba8_to_rgb8(
