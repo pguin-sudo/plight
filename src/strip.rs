@@ -35,7 +35,10 @@ impl Strip {
 
     pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) -> Result<(), SetLedsError> {
         if led_colors.len() != self.strip_length {
-            return Err(SetLedsError::WrongLength(led_colors.len(), self.strip_length));
+            return Err(SetLedsError::WrongLength(
+                led_colors.len(),
+                self.strip_length,
+            ));
         }
 
         let _ = self.port.write(&PREFIX);
@@ -66,10 +69,13 @@ impl Strip {
         match self.port.read(buf) {
             Ok(_) => {
                 buf.reverse();
-                if *buf == PREFIX { Ok(()) } 
-                else { Err(SetLedsError::WrongPostfix(*buf)) }
+                if *buf == PREFIX {
+                    Ok(())
+                } else {
+                    Err(SetLedsError::WrongPostfix(*buf))
+                }
             }
-            Err(e) => Err(SetLedsError::ReadPostfix(e))
+            Err(e) => Err(SetLedsError::ReadPostfix(e)),
         }
     }
 

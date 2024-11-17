@@ -20,12 +20,10 @@ async fn main() {
         // Start polling
         match mode.poll(&strip).await {
             Ok(_) => todo!(),
-            Err(e) => { 
-                match e {
-                    strip::SetLedsError::WrongLength(a, b) => panic!("Wrong length {} {}", a, b),
-                    strip::SetLedsError::WrongPostfix(a) => println!("Wrong postfix error: {:?}", a),
-                    strip::SetLedsError::ReadPostfix(a) => println!("Read prefix error: {:?}", a),
-                } 
+            Err(e) => match e {
+                strip::SetLedsError::WrongLength(a, b) => panic!("Wrong length {} {}", a, b),
+                strip::SetLedsError::WrongPostfix(a) => println!("Wrong postfix error: {:?}", a),
+                strip::SetLedsError::ReadPostfix(a) => println!("Read prefix error: {:?}", a),
             },
         }
     }

@@ -3,7 +3,6 @@ use confique::{Config, File};
 use image::Rgb;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tokio::time::{sleep, Duration};
 
 use crate::config::CONFIG;
 use crate::strip::{SetLedsError, Strip};
@@ -11,17 +10,13 @@ use crate::{modes::Mode, utils::hex_to_rgb};
 
 #[derive(Config)]
 pub struct CavaWallDcolModConf {
-    // Update rate in milliseconds
-    #[config(default = 32)]
-    pub update_rate: u64,
-
     #[config(default = "/home/pguin/.config/cava/Wall-Dcol")]
     pub path_to_dcol: PathBuf,
 }
 
 impl Mode {
     pub async fn poll_cava_wall_dcol(&self, strip: &Mutex<Strip>) -> Result<(), SetLedsError> {
-        const GRADIENT_LENGTH: usize = 7; 
+        const GRADIENT_LENGTH: usize = 7;
 
         loop {
             let cava_gradients = CavaGradientsConf::from_partial(
@@ -73,11 +68,6 @@ impl Mode {
             ]);
 
             strip.lock().unwrap().set_leds(&colors)?;
-            
-            sleep(Duration::from_millis(
-                CONFIG.modes.cava_wall_dcol.update_rate,
-            ))
-            .await;
         }
     }
 }

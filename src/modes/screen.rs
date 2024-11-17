@@ -1,19 +1,18 @@
 use confique::Config;
+use serde::{Deserialize, Serialize};
 use std::str;
 use std::sync::Mutex;
-use tokio::time::{sleep, Duration};
 use xcap::Monitor;
 
 use crate::config::CONFIG;
+use crate::modes::Mode;
 use crate::strip::{SetLedsError, Strip};
 use crate::utils::{average_color, parse_image, rgba8_to_rgb8};
-use crate::modes::Mode;
 
 #[derive(Config)]
 pub struct ScreenModConf {
-    // Update rate in milliseconds
-    #[config(default = 32)]
-    pub update_rate: u64,
+    #[config(default = "XCap")]
+    pub engine: CaptureEngine,
 }
 
 impl Mode {
@@ -21,12 +20,20 @@ impl Mode {
         let monitor = Monitor::all().unwrap()[0].clone();
 
         loop {
-            let image = monitor.capture_image().unwrap();
-            // ? Maybe there is better way to convert buffer to buffer without alpha
-            strip.lock().unwrap().set_leds(&parse_image(&rgba8_to_rgb8(image), average_color).await)?;
+            let image = match CONFIG.modes.screen.engine {
+                CaptureEngine::XCap => monitor.capture_image().unwrap(),
+            };
 
-            sleep(Duration::from_millis(CONFIG.modes.screen.update_rate)).await;
+            // ? Maybe there is better way to convert buffer to buffer without alpha
+            strip
+                .lock()
+                .unwrap()
+                .set_leds(&parse_image(&rgba8_to_rgb8(image), average_color).await)?;
         }
     }
 }
 
+#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+pub enum CaptureEngine {
+    XCap,
+}

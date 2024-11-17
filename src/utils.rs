@@ -3,9 +3,7 @@ use ndarray::{s, Array2};
 
 use crate::config::CONFIG;
 
-pub async fn parse_image<F>(
-    img: &ImageBuffer<Rgb<u8>, Vec<u8>>,
-    mut process: F) -> Vec<Rgb<u8>>
+pub async fn parse_image<F>(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, mut process: F) -> Vec<Rgb<u8>>
 where
     F: FnMut(&[Rgb<u8>]) -> Rgb<u8>,
 {
@@ -132,7 +130,7 @@ pub fn rgba8_to_rgb8(
     let width = input.width() as usize;
     let height = input.height() as usize;
 
-   let input: &Vec<u8> = input.as_raw();
+    let input: &Vec<u8> = input.as_raw();
 
     let mut output_data = vec![0u8; width * height * 3];
 
@@ -161,4 +159,3 @@ pub fn rotate_smooth(colors: &[Rgb<u8>], speed: f32) -> Vec<Rgb<u8>> {
 
     result
 }
-
