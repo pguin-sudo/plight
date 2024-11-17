@@ -4,7 +4,6 @@ pub mod screen;
 pub mod wallpaper;
 
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
 
 use crate::{errors::Result, strip::Strip};
 
@@ -19,7 +18,7 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub async fn poll(&self, strip: &Mutex<Strip>) -> Result<()> {
+    pub async fn poll(&self, strip: &mut Strip) -> Result<()> {
         match self {
             Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip).await,
             Mode::Color => self.poll_color(strip).await,

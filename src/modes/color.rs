@@ -1,6 +1,5 @@
 use confique::Config;
 use image::Rgb;
-use std::sync::Mutex;
 
 use crate::config::CONFIG;
 use crate::errors::Result;
@@ -14,7 +13,7 @@ pub struct ColorModConf {
 }
 
 impl Mode {
-    pub async fn poll_color(&self, strip: &Mutex<Strip>) -> Result<()> {
+    pub async fn poll_color(&self, strip: &mut Strip) -> Result<()> {
         let length: usize = CONFIG.strip.len().into();
         let mut prev_color = Rgb::from([0_u8, 0_u8, 0_u8]);
         loop {
@@ -27,7 +26,7 @@ impl Mode {
             prev_color = color;
 
             let colors = vec![color; length];
-            strip.lock().unwrap().set_leds(&colors)?;
+            strip.set_leds(&colors)?;
         }
     }
 }

@@ -2,7 +2,6 @@ use confique::Config;
 use image::{open, Rgb};
 use serde::{Deserialize, Serialize};
 use std::str;
-use std::sync::Mutex;
 use tokio::process::Command;
 
 use crate::config::CONFIG;
@@ -22,7 +21,7 @@ pub struct WallpaperModConf {
 }
 
 impl Mode {
-    pub async fn poll_wallpaper(&self, strip: &Mutex<Strip>) -> Result<()> {
+    pub async fn poll_wallpaper(&self, strip: &mut Strip) -> Result<()> {
         let mut command;
         let path_to_wallpaper = match CONFIG.modes.wallpaper.engine {
             WallpaperEngine::Swww => {
@@ -44,7 +43,7 @@ impl Mode {
             if output_str == prev_output_str {
                 if CONFIG.modes.wallpaper.rotation_speed != 0.0 {
                     colors = rotate_smooth(&mut colors, CONFIG.modes.wallpaper.rotation_speed);
-                    strip.lock().unwrap().set_leds(&colors)?;
+                    strip.set_leds(&colors)?;
                 }
                 continue;
             }
@@ -57,7 +56,7 @@ impl Mode {
             let image = open(image_path)?.into_rgb8();
 
             colors = parse_image(&image, average_color).await;
-            strip.lock().unwrap().set_leds(&colors)?;
+            strip.set_leds(&colors)?;
         }
     }
 }

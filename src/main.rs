@@ -4,8 +4,6 @@ mod modes;
 mod strip;
 mod utils;
 
-use std::sync::Mutex;
-
 use config::CONFIG;
 use errors::Error::{
     Config, ImageError, ParseIntError, SerialPort, Utf8Error, VarError, XCapError,
@@ -16,7 +14,7 @@ use strip::Strip;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let strip = Mutex::new(Strip::new(&CONFIG.strip)?);
+    let mut strip = Strip::new(&CONFIG.strip)?;
     println!("Strip has set up successfully");
 
     let mode = CONFIG.mode;
@@ -24,7 +22,7 @@ async fn main() -> Result<()> {
 
     loop {
         // Start polling
-        if let Err(e) = mode.poll(&strip).await {
+        if let Err(e) = mode.poll(&mut strip).await {
             match e {
                 WrongLength {
                     given: _,
