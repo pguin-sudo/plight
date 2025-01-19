@@ -24,6 +24,10 @@ pub enum Error {
     #[from]
     XCapError(xcap::XCapError),
 
+    #[from]
+    #[display("given {given}")]
+    WrongWallpaperPath { given: String },
+
     // -- Strip
     #[from]
     PostfixReading(io::Error),

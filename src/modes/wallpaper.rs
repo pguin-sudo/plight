@@ -5,7 +5,7 @@ use std::str;
 use tokio::process::Command;
 
 use crate::config::CONFIG;
-use crate::errors::Result;
+use crate::errors::{Error::WrongWallpaperPath, Result};
 use crate::modes::Mode;
 use crate::strip::Strip;
 use crate::utils::{average_color, parse_image, rotate_smooth};
@@ -50,13 +50,21 @@ impl Mode {
 
             prev_output_str = output_str.to_string();
 
-            let (_, image_path) = output_str.split_once(image_prefix).unwrap();
-            let image_path = &image_path.replace("\n", "");
+            match output_str.split_once(image_prefix) {
+                Some((_, image_path)) => {
+                    let image_path = &image_path.replace("\n", "");
 
-            let image = open(image_path)?.into_rgb8();
+                    let image = open(image_path)?.into_rgb8();
 
-            colors = parse_image(&image, average_color).await;
-            strip.set_leds(&colors)?;
+                    colors = parse_image(&image, average_color).await;
+                    strip.set_leds(&colors)?;
+                }
+                None => {
+                    return Err(WrongWallpaperPath {
+                        given: output_str.to_string(),
+                    })
+                }
+            }
         }
     }
 }
