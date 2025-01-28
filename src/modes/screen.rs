@@ -7,7 +7,7 @@ use crate::config::CONFIG;
 use crate::errors::Result;
 use crate::modes::Mode;
 use crate::strip::Strip;
-use crate::utils::{average_color, parse_image, rgba8_to_rgb8};
+use crate::utils::{parse_image, rgba8_to_rgb8};
 
 #[derive(Config)]
 pub struct ScreenModConf {
@@ -25,7 +25,7 @@ impl Mode {
             };
 
             // ? Maybe there is better way to convert buffer to buffer without alpha
-            strip.set_leds(&parse_image(&rgba8_to_rgb8(image), average_color).await)?;
+            strip.set_leds(&parse_image(&rgba8_to_rgb8(image)).await)?;
         }
     }
 }

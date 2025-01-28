@@ -1,12 +1,17 @@
+mod parse_modes;
+
 use image::{ImageBuffer, Pixel, Rgb, Rgba};
 use ndarray::{s, Array2};
+use parse_modes::{average, median};
 
 use crate::{config::CONFIG, errors::Result};
 
-pub async fn parse_image<F>(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, mut process: F) -> Vec<Rgb<u8>>
-where
-    F: FnMut(&[Rgb<u8>]) -> Rgb<u8>,
-{
+pub async fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> Vec<Rgb<u8>> {
+    let process = match CONFIG.global.parse_mode {
+        crate::config::ParseMode::Average => average,
+        crate::config::ParseMode::Median => median,
+    };
+
     let dim = img.dimensions();
     let (width_p, height_p) = (dim.0 as usize, dim.1 as usize);
 
@@ -93,27 +98,6 @@ where
     }
 
     colors
-}
-
-pub fn average_color(pixels: &[Rgb<u8>]) -> Rgb<u8> {
-    let total_pixels = pixels.len() as u64;
-
-    let mut total_r: u64 = 0;
-    let mut total_g: u64 = 0;
-    let mut total_b: u64 = 0;
-
-    for pixel in pixels {
-        let [r, g, b] = pixel.0;
-        total_r += r as u64;
-        total_g += g as u64;
-        total_b += b as u64;
-    }
-
-    let avg_r = (total_r / total_pixels) as u8;
-    let avg_g = (total_g / total_pixels) as u8;
-    let avg_b = (total_b / total_pixels) as u8;
-
-    Rgb::<u8>::from([avg_r, avg_g, avg_b])
 }
 
 pub fn hex_to_rgb(hex: &str) -> Result<Rgb<u8>> {

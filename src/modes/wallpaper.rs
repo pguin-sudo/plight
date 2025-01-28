@@ -8,7 +8,7 @@ use crate::config::CONFIG;
 use crate::errors::{Error::WrongWallpaperPath, Result};
 use crate::modes::Mode;
 use crate::strip::Strip;
-use crate::utils::{average_color, parse_image, rotate_smooth};
+use crate::utils::{parse_image, rotate_smooth};
 
 #[derive(Config)]
 pub struct WallpaperModConf {
@@ -56,7 +56,7 @@ impl Mode {
 
                     let image = open(image_path)?.into_rgb8();
 
-                    colors = parse_image(&image, average_color).await;
+                    colors = parse_image(&image).await;
                     strip.set_leds(&colors)?;
                 }
                 None => {

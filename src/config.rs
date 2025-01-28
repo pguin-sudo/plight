@@ -1,5 +1,7 @@
 use confique::{toml::FormatOptions, Config};
 use lazy_static::lazy_static;
+use serde::Deserialize;
+use serde::Serialize;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -23,11 +25,15 @@ pub struct Conf {
     #[config(default = "Wallpaper")]
     pub mode: Mode,
 
+    // Global things
+    #[config(nested)]
+    pub global: GlobalConf,
+
     // Strip configuration
     #[config(nested)]
     pub strip: StripConf,
 
-    // Several PLight modes config
+    // Several PLight modes configuration
     #[config(nested)]
     pub modes: ModesConf,
 }
@@ -56,6 +62,18 @@ fn create_new_config(default_config_path: &str) -> Result<()> {
         file.write_all(content.as_bytes())?;
     }
     Ok(())
+}
+
+#[derive(Clone, Config)]
+pub struct GlobalConf {
+    #[config(default = "Average")]
+    pub parse_mode: ParseMode,
+}
+
+#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+pub enum ParseMode {
+    Average,
+    Median,
 }
 
 #[derive(Clone, Config)]
