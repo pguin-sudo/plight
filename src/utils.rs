@@ -1,4 +1,6 @@
+pub mod math;
 mod parse_modes;
+pub mod time;
 
 use image::{ImageBuffer, Pixel, Rgb, Rgba};
 use ndarray::{s, Array2};

@@ -1,3 +1,4 @@
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use image::Rgb;
@@ -10,8 +11,9 @@ use crate::errors::Result;
 
 const PREFIX: [u8; 3] = [89, 124, 234];
 
+#[derive(Debug)]
 pub struct Strip {
-    port: Box<dyn SerialPort>,
+    port: Arc<RwLock<Box<dyn SerialPort>>>,
     tint_conf: TintConf,
     strip_length: usize,
 }
@@ -19,9 +21,11 @@ pub struct Strip {
 impl Strip {
     pub fn new(conf: &StripConf) -> Result<Strip> {
         Ok(Strip {
-            port: serialport::new(conf.serial_port.clone(), conf.baudrate)
-                .timeout(Duration::from_millis(1000))
-                .open()?,
+            port: Arc::new(RwLock::new(
+                serialport::new(conf.serial_port.clone(), conf.baudrate)
+                    .timeout(Duration::from_millis(1000))
+                    .open()?,
+            )),
             tint_conf: conf.tint.clone(),
             strip_length: conf.len() as usize,
         })
@@ -35,15 +39,18 @@ impl Strip {
             });
         }
 
-        let _ = self.port.write(&PREFIX);
+        let port_clone = Arc::clone(&self.port);
+        let mut port_lock = port_clone.write().unwrap();
+
+        let _ = port_lock.write(&PREFIX);
 
         let hi: u8 = random();
         let lo: u8 = random();
         let chk = (hi ^ lo ^ 0x55) as u8;
 
-        let _ = self.port.write(&[hi]);
-        let _ = self.port.write(&[lo]);
-        let _ = self.port.write(&[chk]);
+        let _ = port_lock.write(&[hi]);
+        let _ = port_lock.write(&[lo]);
+        let _ = port_lock.write(&[chk]);
 
         for rgb in led_colors {
             let (r, g, b) = match self.tint_conf.order.as_str() {
@@ -56,11 +63,11 @@ impl Strip {
             };
 
             let (r, g, b) = self.apply_tint(r, g, b);
-            let _ = self.port.write(&[r, g, b]);
+            let _ = port_lock.write(&[r, g, b]);
         }
 
         let buf: &mut [u8; 3] = &mut [0; 3];
-        match self.port.read(buf) {
+        match port_lock.read(buf) {
             Ok(_) => {
                 buf.reverse();
                 if *buf == PREFIX {

@@ -6,8 +6,8 @@ mod utils;
 
 use config::CONFIG;
 use errors::Error::{
-    Config, ImageError, ParseIntError, SerialPort, Utf8Error, VarError, WrongWallpaperPath,
-    XCapError,
+    Config, ImageError, ParseIntError, PipewireError, SerialPort, Utf8Error, VarError,
+    WrongWallpaperPath, XCapError,
 };
 use errors::Error::{PostfixReading, WrongLength, WrongPostfix};
 use errors::Result;
@@ -30,6 +30,7 @@ async fn main() -> Result<()> {
                     actual: _,
                 } => panic!("{}", e),
                 WrongWallpaperPath { given: _ } => println!("{}", e),
+                PipewireError(_) => println!("{}", e),
                 PostfixReading(_) => println!("{}", e),
                 ParseIntError(_) => println!("{}", e),
                 WrongPostfix(_) => println!("{}", e),

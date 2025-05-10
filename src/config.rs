@@ -9,6 +9,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use crate::errors::Result;
+use crate::modes::audio::AudioModConf;
 use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
 use crate::modes::color::ColorModConf;
 use crate::modes::screen::ScreenModConf;
@@ -20,7 +21,7 @@ lazy_static! {
     pub static ref CONFIG: Conf = Conf::new().unwrap();
 }
 
-#[derive(Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct Conf {
     #[config(default = "Wallpaper")]
     pub mode: Mode,
@@ -64,19 +65,19 @@ fn create_new_config(default_config_path: &str) -> Result<()> {
     Ok(())
 }
 
-#[derive(Clone, Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct GlobalConf {
     #[config(default = "Average")]
     pub parse_mode: ParseMode,
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]
 pub enum ParseMode {
     Average,
     Median,
 }
 
-#[derive(Clone, Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct StripConf {
     #[config(default = 29)]
     pub width: usize,
@@ -108,7 +109,7 @@ impl StripConf {
     }
 }
 
-#[derive(Clone, Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct TintConf {
     #[config(default = "GRB")]
     pub order: String,
@@ -120,12 +121,14 @@ pub struct TintConf {
     pub brightness: [f32; 3],
 }
 
-#[derive(Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct ModesConf {
     #[config(nested)]
-    pub color: ColorModConf,
+    pub audio: AudioModConf,
     #[config(nested)]
     pub cava_wall_dcol: CavaWallDcolModConf,
+    #[config(nested)]
+    pub color: ColorModConf,
     #[config(nested)]
     pub screen: ScreenModConf,
     #[config(nested)]

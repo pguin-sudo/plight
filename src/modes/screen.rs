@@ -9,7 +9,7 @@ use crate::modes::Mode;
 use crate::strip::Strip;
 use crate::utils::{parse_image, rgba8_to_rgb8};
 
-#[derive(Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct ScreenModConf {
     #[config(default = "XCap")]
     pub engine: CaptureEngine,
@@ -30,7 +30,7 @@ impl Mode {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]
 pub enum CaptureEngine {
     XCap,
 }

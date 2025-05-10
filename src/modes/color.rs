@@ -6,7 +6,7 @@ use crate::errors::Result;
 use crate::modes::Mode;
 use crate::strip::Strip;
 
-#[derive(Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct ColorModConf {
     #[config(default = [192, 168, 31])]
     pub color: [u8; 3],

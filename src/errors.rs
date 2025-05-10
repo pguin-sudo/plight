@@ -23,6 +23,8 @@ pub enum Error {
     SerialPort(serialport::Error),
     #[from]
     XCapError(xcap::XCapError),
+    #[from]
+    PipewireError(pipewire::Error),
 
     #[from]
     #[display("given {given}")]

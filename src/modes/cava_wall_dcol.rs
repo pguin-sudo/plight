@@ -8,7 +8,7 @@ use crate::errors::Result;
 use crate::strip::Strip;
 use crate::{modes::Mode, utils::hex_to_rgb};
 
-#[derive(Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct CavaWallDcolModConf {
     #[config(default = "/home/pguin/.config/cava/Wall-Dcol")]
     pub path_to_dcol: PathBuf,

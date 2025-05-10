@@ -10,7 +10,7 @@ use crate::modes::Mode;
 use crate::strip::Strip;
 use crate::utils::{parse_image, rotate_smooth};
 
-#[derive(Config)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct WallpaperModConf {
     #[config(default = "Swww")]
     pub engine: WallpaperEngine,
@@ -69,7 +69,7 @@ impl Mode {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+#[derive(Clone, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]
 pub enum WallpaperEngine {
     Swww,
 }
