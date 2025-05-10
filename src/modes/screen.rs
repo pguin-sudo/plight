@@ -24,7 +24,7 @@ impl Mode {
                 CaptureEngine::XCap => monitor.capture_image()?,
             };
 
-            // ? Maybe there is better way to convert buffer to buffer without alpha
+            // TODO: Maybe there is better way to convert buffer to buffer without alpha
             strip.set_leds(&parse_image(&rgba8_to_rgb8(image)).await)?;
         }
     }
