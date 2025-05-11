@@ -5,11 +5,6 @@ mod strip;
 mod utils;
 
 use config::CONFIG;
-use errors::Error::{
-    Config, ImageError, ParseIntError, PipewireError, SerialPort, Utf8Error, VarError,
-    WrongWallpaperPath, XCapError,
-};
-use errors::Error::{PostfixReading, WrongLength, WrongPostfix};
 use errors::Result;
 use strip::Strip;
 
@@ -22,25 +17,8 @@ async fn main() -> Result<()> {
     println!("Current mode is \"{:?}\"", mode);
 
     loop {
-        // Start polling
         if let Err(e) = mode.poll(&mut strip).await {
-            match e {
-                WrongLength {
-                    given: _,
-                    actual: _,
-                } => panic!("{}", e),
-                WrongWallpaperPath { given: _ } => println!("{}", e),
-                PipewireError(_) => println!("{}", e),
-                PostfixReading(_) => println!("{}", e),
-                ParseIntError(_) => println!("{}", e),
-                WrongPostfix(_) => println!("{}", e),
-                ImageError(_) => println!("{}", e),
-                SerialPort(_) => panic!("{}", e),
-                Utf8Error(_) => panic!("{}", e),
-                XCapError(_) => panic!("{}", e),
-                VarError(_) => panic!("{}", e),
-                Config(_) => panic!("{}", e),
-            }
+            println!("{:?}", e);
         }
     }
 }
