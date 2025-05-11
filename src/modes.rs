@@ -4,6 +4,8 @@ pub mod color;
 pub mod screen;
 pub mod wallpaper;
 
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{errors::Result, strip::Strip};
@@ -20,14 +22,14 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub async fn poll(&self, strip: &mut Strip) -> Result<()> {
+    pub async fn poll(&self, strip: Arc<Strip>, strip_chchch: &mut Strip) -> Result<()> {
         println!("Polling is starting");
         match self {
             Mode::Audio => self.poll_audio(strip).await,
-            Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip).await,
-            Mode::Color => self.poll_color(strip).await,
-            Mode::Screen => self.poll_screen(strip).await,
-            Mode::Wallpaper => self.poll_wallpaper(strip).await,
+            Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip_chchch).await,
+            Mode::Color => self.poll_color(strip_chchch).await,
+            Mode::Screen => self.poll_screen(strip_chchch).await,
+            Mode::Wallpaper => self.poll_wallpaper(strip_chchch).await,
         }
     }
 }

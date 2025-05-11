@@ -1,6 +1,6 @@
 pub mod math;
 mod parse_modes;
-pub mod time;
+pub mod sound;
 
 use crate::{config::CONFIG, errors::Result};
 use image::{ImageBuffer, Pixel, Rgb, Rgba};

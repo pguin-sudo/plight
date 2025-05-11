@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use image::Rgb;
@@ -11,27 +11,28 @@ use crate::errors::Result;
 
 const PREFIX: [u8; 3] = [89, 124, 234];
 
-#[derive(Debug)]
+#[derive(Clone)]
 pub struct Strip {
-    port: Arc<RwLock<Box<dyn SerialPort>>>,
+    port: Arc<Mutex<Box<dyn SerialPort + Send>>>,
     tint_conf: TintConf,
     strip_length: usize,
 }
 
 impl Strip {
     pub fn new(conf: &StripConf) -> Result<Strip> {
+        let port: Box<dyn SerialPort + Send> =
+            serialport::new(conf.serial_port.clone(), conf.baudrate)
+                .timeout(Duration::from_millis(1000))
+                .open()?;
+
         Ok(Strip {
-            port: Arc::new(RwLock::new(
-                serialport::new(conf.serial_port.clone(), conf.baudrate)
-                    .timeout(Duration::from_millis(1000))
-                    .open()?,
-            )),
+            port: Arc::new(Mutex::new(port)),
             tint_conf: conf.tint.clone(),
-            strip_length: conf.len() as usize,
+            strip_length: conf.len(),
         })
     }
 
-    pub fn set_leds(&mut self, led_colors: &[Rgb<u8>]) -> Result<()> {
+    pub fn set_leds(&self, led_colors: &[Rgb<u8>]) -> Result<()> {
         if led_colors.len() != self.strip_length {
             return Err(WrongLength {
                 given: led_colors.len(),
@@ -39,18 +40,18 @@ impl Strip {
             });
         }
 
-        let port_clone = Arc::clone(&self.port);
-        let mut port_lock = port_clone.write().unwrap();
+        // TODO: Try to replace unwrap() with ?
+        let mut port = self.port.lock().unwrap();
 
-        let _ = port_lock.write(&PREFIX);
+        port.write_all(&PREFIX)?;
 
         let hi: u8 = random();
         let lo: u8 = random();
         let chk = (hi ^ lo ^ 0x55) as u8;
 
-        let _ = port_lock.write(&[hi]);
-        let _ = port_lock.write(&[lo]);
-        let _ = port_lock.write(&[chk]);
+        port.write_all(&[hi])?;
+        port.write_all(&[lo])?;
+        port.write_all(&[chk])?;
 
         for rgb in led_colors {
             let (r, g, b) = match self.tint_conf.order.as_str() {
@@ -63,17 +64,17 @@ impl Strip {
             };
 
             let (r, g, b) = self.apply_tint(r, g, b);
-            let _ = port_lock.write(&[r, g, b]);
+            port.write_all(&[r, g, b])?;
         }
 
-        let buf: &mut [u8; 3] = &mut [0; 3];
-        match port_lock.read(buf) {
+        let mut buf = [0; 3];
+        match port.read(&mut buf) {
             Ok(_) => {
                 buf.reverse();
-                if *buf == PREFIX {
+                if buf == PREFIX {
                     Ok(())
                 } else {
-                    Err(WrongPostfix(*buf))
+                    Err(WrongPostfix(buf))
                 }
             }
             Err(e) => Err(PostfixReading(e)),

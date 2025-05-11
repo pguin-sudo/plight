@@ -1,5 +1,5 @@
 use confique::Config;
-use image::Rgb;
+use image::{Pixel, Rgb};
 use pipewire::context::Context;
 use pipewire::keys;
 use pipewire::main_loop::MainLoop;
@@ -9,13 +9,13 @@ use pipewire::spa::param::{format_utils, ParamType};
 use pipewire::spa::utils::Direction;
 use pipewire::stream::{Stream, StreamFlags};
 use std::str;
+use std::sync::{Arc, Mutex};
 
 use crate::config::CONFIG;
 use crate::errors::Result;
 use crate::modes::Mode;
 use crate::strip::Strip;
-use crate::utils::time;
-
+use crate::utils::sound::calculate_sound_level;
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct AudioModConf {
@@ -26,13 +26,18 @@ pub struct AudioModConf {
     pub timer_length: u64,
 }
 
+#[derive(Clone, Debug)]
+struct AudioProcessData {
+    pub current_value: Arc<Mutex<Option<f64>>>,
+}
+
 impl Mode {
-    pub async fn poll_audio(&self, strip: &mut Strip) -> Result<()> {
+    pub async fn poll_audio(&self, strip: Arc<Strip>) -> Result<()> {
         let length: usize = CONFIG.strip.len().into();
-        let prev_color = Rgb::from([0_u8, 0_u8, 0_u8]);
+        let current_value = Arc::new(Mutex::new(None));
 
         let data = AudioProcessData {
-            timer: time::Timer::new(CONFIG.modes.audio.timer_length),
+            current_value: current_value.clone(),
         };
 
         let mainloop = MainLoop::new(None)?;
@@ -51,7 +56,6 @@ impl Mode {
         };
         let stream = Stream::new(&core, "Plight monitor", props)?;
 
-        // TODO: There is only one input, change it
         stream.connect(
             Direction::Input,
             Some(66),
@@ -59,9 +63,12 @@ impl Mode {
             &mut [],
         )?;
 
+        let strip_arc = Arc::new(Mutex::new(strip));
+        let strip_clone = strip_arc.clone();
+
         let _listener_l = stream
             .add_local_listener_with_user_data(data)
-            .param_changed(|_, user_data, id, param| {
+            .param_changed(|_, _, id, param| {
                 let Some(param) = param else {
                     return;
                 };
@@ -77,49 +84,44 @@ impl Mode {
                 if media_type != MediaType::Audio || media_subtype != MediaSubtype::Raw {
                     return;
                 }
-
-                println!("user data:{:?}", user_data);
             })
             .process(|stream, apd| {
                 if let Some(mut buf) = stream.dequeue_buffer() {
                     if let Some(data) = buf.datas_mut()[0].data() {
-                        let s: usize = data
-                            .iter()
-                            // checked_ilog(10).unwrap_or(0)
-                            .map(|x| (*x).pow(2) as usize)
-                            .sum();
-                        let f = apd.timer.update_value(s);
-                        println!("{:?}", f);
+                        let sound_level = calculate_sound_level(data);
+                        let mut current = apd.current_value.lock().unwrap();
+                        *current = Some(sound_level);
                     }
                 }
-                ("{:?}", stream.flush(false).unwrap());
+                stream.flush(false).unwrap();
             })
             .register()?;
 
-        // let strip_lock = RwLock::new(strip);
-        // thread::spawn(|| {
-        //     loop {
-        //         // let mut buffer = vec![0; 1024];
-        //         let color = Rgb::from(CONFIG.modes.audio.color);
+        std::thread::spawn(move || {
+            let base_color = Rgb::from(CONFIG.modes.audio.color);
+            // TODO: Do something with error handling
+            loop {
+                let current_audio_level = {
+                    let current = current_value.lock().unwrap();
+                    current.unwrap_or(0.0)
+                };
 
-        //         if prev_color == color {
-        //             continue;
-        //         }
+                let color = base_color.map(|x| (x as f64 * current_audio_level) as u8);
 
-        //         prev_color = color;
+                let colors = vec![color; length];
+                if let Ok(strip) = strip_clone.lock() {
+                    if let Err(e) = strip.set_leds(&colors) {
+                        eprintln!("Thread's error setting LEDs: {}", e);
+                    }
+                }
 
-        //         let colors = vec![color; length];
-        //         strip_lock.read().unwrap().set_leds(&colors).unwrap();
-        //     }
-        // });
+                // ? Maybe we need some delay to prevent busy waiting
+                // std::thread::sleep(std::time::Duration::from_millis(16));
+            }
+        });
 
         mainloop.run();
 
         Ok(())
     }
-}
-
-#[derive(Clone, PartialEq, PartialOrd, Debug)]
-struct AudioProcessData {
-    pub timer: time::Timer,
 }
