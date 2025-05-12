@@ -22,8 +22,8 @@ pub struct AudioModConf {
     #[config(default = [222, 155, 144])]
     pub color: [u8; 3],
 
-    #[config(default = 10)]
-    pub timer_length: u64,
+    #[config(default = 0.05)]
+    pub flicker: f64,
 }
 
 #[derive(Clone, Debug)]
@@ -58,7 +58,7 @@ impl Mode {
 
         stream.connect(
             Direction::Input,
-            Some(66),
+            None,
             StreamFlags::AUTOCONNECT | StreamFlags::MAP_BUFFERS | StreamFlags::RT_PROCESS,
             &mut [],
         )?;
@@ -90,7 +90,12 @@ impl Mode {
                     if let Some(data) = buf.datas_mut()[0].data() {
                         let sound_level = calculate_sound_level(data);
                         let mut current = apd.current_value.lock().unwrap();
-                        *current = Some(sound_level);
+                        let prev_sound_level = (*current).unwrap_or_default();
+                        *current = Some(
+                            prev_sound_level
+                                + CONFIG.modes.audio.flicker.clone()
+                                    * (sound_level - prev_sound_level),
+                        );
                     }
                 }
                 stream.flush(false).unwrap();
@@ -101,10 +106,7 @@ impl Mode {
             let base_color = Rgb::from(CONFIG.modes.audio.color);
             // TODO: Do something with error handling
             loop {
-                let current_audio_level = {
-                    let current = current_value.lock().unwrap();
-                    current.unwrap_or(0.0)
-                };
+                let current_audio_level = current_value.lock().unwrap().unwrap_or_default();
 
                 let color = base_color.map(|x| (x as f64 * current_audio_level) as u8);
 
