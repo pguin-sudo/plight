@@ -52,7 +52,7 @@ impl Mode {
             *keys::MEDIA_CATEGORY => "DSP",
             *keys::MEDIA_ROLE => "Accessibility",
             *keys::NODE_NAME => "PLight",
-            *keys::PORT_ALIAS => "Inputttt"
+            *keys::PORT_ALIAS => "Input"
         };
         let stream = Stream::new(&core, "Plight monitor", props)?;
 

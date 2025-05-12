@@ -22,14 +22,14 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub async fn poll(&self, strip: Arc<Strip>, strip_chchch: &mut Strip) -> Result<()> {
+    pub async fn poll(&self, strip_arc: Arc<Strip>, strip: &mut Strip) -> Result<()> {
         println!("Polling is starting");
         match self {
-            Mode::Audio => self.poll_audio(strip).await,
-            Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip_chchch).await,
-            Mode::Color => self.poll_color(strip_chchch).await,
-            Mode::Screen => self.poll_screen(strip_chchch).await,
-            Mode::Wallpaper => self.poll_wallpaper(strip_chchch).await,
+            Mode::Audio => self.poll_audio(strip_arc).await,
+            Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip).await,
+            Mode::Color => self.poll_color(strip).await,
+            Mode::Screen => self.poll_screen(strip).await,
+            Mode::Wallpaper => self.poll_wallpaper(strip).await,
         }
     }
 }
