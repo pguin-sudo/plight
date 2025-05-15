@@ -28,7 +28,7 @@ impl Mode {
             Mode::Audio => self.poll_audio(strip_arc).await,
             Mode::CavaWallDcol => self.poll_cava_wall_dcol(strip).await,
             Mode::Color => self.poll_color(strip).await,
-            Mode::Screen => self.poll_screen(strip).await,
+            Mode::Screen => self.poll_screen(strip_arc).await,
             Mode::Wallpaper => self.poll_wallpaper(strip).await,
         }
     }
