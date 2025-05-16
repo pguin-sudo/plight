@@ -46,15 +46,17 @@ impl Mode {
 
         let props = properties! {
             *keys::APP_NAME => "PLight",
-            *keys::AUDIO_CHANNEL => "FL",
-            *keys::AUDIO_CHANNELS => "2",
+            *keys::MEDIA_CATEGORY => "Capture",
+            *keys::MEDIA_CLASS => "Stream/Input/Audio",
+            *keys::MEDIA_NAME => "plight",
+            *keys::MEDIA_ROLE => "Music",
             *keys::MEDIA_TYPE => "Audio",
-            *keys::MEDIA_CATEGORY => "DSP",
-            *keys::MEDIA_ROLE => "Accessibility",
+            *keys::NODE_ALWAYS_PROCESS => "true",
+            *keys::NODE_AUTOCONNECT => "true",
             *keys::NODE_NAME => "PLight",
-            *keys::PORT_ALIAS => "Input"
         };
-        let stream = Stream::new(&core, "Plight monitor", props)?;
+
+        let stream = Stream::new(&core, "PLight audio capture", props)?;
 
         stream.connect(
             Direction::Input,
