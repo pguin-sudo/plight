@@ -1,0 +1,11 @@
+[Unit]
+Description=PLight - dynamic backlighting
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/plight
+Restart=always
+
+[Install]
+WantedBy=default.target
