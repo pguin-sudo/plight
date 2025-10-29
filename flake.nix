@@ -17,7 +17,6 @@
         ...
       }: let
         cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-        msrv = cargoToml.package.rust-version;
 
         pkgs = import inputs.nixpkgs {
           inherit system;
@@ -29,7 +28,6 @@
           dbus
           udev
           libxcb
-          xorg.libX11
           stdenv.cc.cc.lib
         ];
 
@@ -42,8 +40,7 @@
         devDeps = with pkgs; [
           rust-analyzer
           cargo-edit
-          lldb
-          gdb
+          lldb # gdb
         ];
 
         mkPackage = features:
@@ -65,7 +62,7 @@
 
             shellHook = ''
               export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}"
-               echo "Activated Rust development shell with $(rustc --version)"
+              echo "Activated Rust development shell with $(rustc --version)"
 
               if [ -n "$BASH" ]; then
                 exec ${pkgs.zsh}/bin/zsh
@@ -91,8 +88,6 @@
 
         devShells = {
           stable = mkDevShell pkgs.rust-bin.stable.latest.default;
-          nightly = mkDevShell (pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default));
-          msrv = mkDevShell pkgs.rust-bin.stable.${msrv}.default;
           default = self'.devShells.stable;
         };
       };

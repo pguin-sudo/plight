@@ -1,5 +1,10 @@
+use std::str;
+use std::sync::{Arc, Mutex};
+
+use anyhow::Result;
 use confique::Config;
 use image::{Pixel, Rgb};
+use log::error;
 use pipewire::context::Context;
 use pipewire::keys;
 use pipewire::main_loop::MainLoop;
@@ -8,14 +13,11 @@ use pipewire::spa::param::format::{MediaSubtype, MediaType};
 use pipewire::spa::param::{format_utils, ParamType};
 use pipewire::spa::utils::Direction;
 use pipewire::stream::{Stream, StreamFlags};
-use std::str;
-use std::sync::{Arc, Mutex};
 
 use crate::config::CONFIG;
-use crate::errors::Result;
-use crate::modes::Mode;
-use crate::strip::Strip;
-use crate::utils::sound::calculate_sound_level;
+use crate::core::strip::Strip;
+use crate::modes::behaviors::Behavior;
+use crate::utils::audio::calculate_sound_level;
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct AudioModConf {
@@ -31,8 +33,8 @@ struct AudioProcessData {
     pub current_value: Arc<Mutex<Option<f64>>>,
 }
 
-impl Mode {
-    pub async fn poll_audio(&self, strip: Arc<Strip>) -> Result<()> {
+impl Behavior {
+    pub async fn poll(&self, strip: Arc<Strip>) -> Result<()> {
         let length: usize = CONFIG.strip.len().into();
         let current_value = Arc::new(Mutex::new(None));
 
@@ -115,7 +117,7 @@ impl Mode {
                 let colors = vec![color; length];
                 if let Ok(strip) = strip_clone.lock() {
                     if let Err(e) = strip.set_leds(&colors) {
-                        eprintln!("Thread's error setting LEDs: {}", e);
+                        error!("Thread's error setting LEDs: {}", e);
                     }
                 }
 

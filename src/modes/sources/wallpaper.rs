@@ -1,17 +1,19 @@
+use std::str;
+
+use anyhow::Result;
 use confique::Config;
 use image::{open, Rgb};
 use serde::{Deserialize, Serialize};
-use std::str;
 use tokio::process::Command;
 
 use crate::config::CONFIG;
-use crate::errors::{Error::WrongWallpaperPath, Result};
-use crate::modes::Mode;
-use crate::strip::Strip;
-use crate::utils::{parse_image, rotate_smooth};
+use crate::core::strip::Strip;
+use crate::errors::PLightError::WrongWallpaperPath;
+use crate::modes::sources::Source;
+use crate::utils::{color_math::rotate_smooth, image_processing::parse_image};
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
-pub struct WallpaperModConf {
+pub struct WallpaperSrcConf {
     #[config(default = "Swww")]
     pub engine: WallpaperEngine,
 
@@ -20,7 +22,7 @@ pub struct WallpaperModConf {
     pub rotation_speed: f32,
 }
 
-impl Mode {
+impl Source {
     pub async fn poll_wallpaper(&self, strip: &mut Strip) -> Result<()> {
         let mut command;
         let path_to_wallpaper = match CONFIG.modes.wallpaper.engine {
@@ -62,7 +64,8 @@ impl Mode {
                 None => {
                     return Err(WrongWallpaperPath {
                         given: output_str.to_string(),
-                    })
+                    }
+                    .into())
                 }
             }
         }

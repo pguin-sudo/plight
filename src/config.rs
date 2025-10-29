@@ -1,20 +1,20 @@
-use confique::{toml::FormatOptions, Config};
-use lazy_static::lazy_static;
-use serde::Deserialize;
-use serde::Serialize;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-use crate::errors::Result;
-use crate::modes::audio::AudioModConf;
-use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
-use crate::modes::color::ColorModConf;
-use crate::modes::screen::ScreenModConf;
-use crate::modes::wallpaper::WallpaperModConf;
-use crate::modes::Mode;
+use confique::{toml::FormatOptions, Config};
+use lazy_static::lazy_static;
+use serde::Deserialize;
+use serde::Serialize;
+
+use anyhow::Result;
+
+use crate::modes::behaviors::solid::SolidBhvConf;
+use crate::modes::behaviors::BehaviorMod;
+use crate::modes::sources::color::ColorSrcConf;
+use crate::modes::sources::SourceMod;
 
 lazy_static! {
     // ? Maybe I should use RwLock there
@@ -23,9 +23,6 @@ lazy_static! {
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct Conf {
-    #[config(default = "Wallpaper")]
-    pub mode: Mode,
-
     // Global things
     #[config(nested)]
     pub global: GlobalConf,
@@ -34,9 +31,19 @@ pub struct Conf {
     #[config(nested)]
     pub strip: StripConf,
 
-    // Several PLight modes configuration
+    #[config(default = "Color")]
+    pub source: SourceMod,
+
+    // Several PLight color source configuration
     #[config(nested)]
-    pub modes: ModesConf,
+    pub sources: SourcesConf,
+
+    #[config(default = "Solid")]
+    pub behavior: BehaviorMod,
+
+    // Several PLight behavior configuration
+    #[config(nested)]
+    pub modes: BehaviorsConf,
 }
 
 impl Conf {
@@ -122,15 +129,13 @@ pub struct TintConf {
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
-pub struct ModesConf {
+pub struct SourcesConf {
     #[config(nested)]
-    pub audio: AudioModConf,
+    pub color: ColorSrcConf,
+}
+
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
+pub struct BehaviorsConf {
     #[config(nested)]
-    pub cava_wall_dcol: CavaWallDcolModConf,
-    #[config(nested)]
-    pub color: ColorModConf,
-    #[config(nested)]
-    pub screen: ScreenModConf,
-    #[config(nested)]
-    pub wallpaper: WallpaperModConf,
+    pub solid: SolidBhvConf,
 }
