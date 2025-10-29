@@ -7,12 +7,10 @@ pub fn calculate_sound_level(buffer: &[u8]) -> f64 {
     let rms =
         (samples.iter().map(|&s| (s as f64).powi(2)).sum::<f64>() / samples.len() as f64).sqrt();
 
-    let level = if rms <= 0.0001 {
+    if rms <= 0.0001 {
         0.0
     } else {
         let db = 20.0 * rms.log10();
         ((db + 40.0 + 10.0) / 40.0).clamp(0.0, 1.0)
-    };
-
-    level
+    }
 }

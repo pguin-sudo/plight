@@ -1,20 +1,23 @@
-use confique::{toml::FormatOptions, Config};
-use lazy_static::lazy_static;
-use serde::Deserialize;
-use serde::Serialize;
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
-use crate::errors::Result;
-use crate::modes::audio::AudioModConf;
-use crate::modes::cava_wall_dcol::CavaWallDcolModConf;
-use crate::modes::color::ColorModConf;
-use crate::modes::screen::ScreenModConf;
-use crate::modes::wallpaper::WallpaperModConf;
-use crate::modes::Mode;
+use confique::{toml::FormatOptions, Config};
+use lazy_static::lazy_static;
+use serde::Deserialize;
+use serde::Serialize;
+
+use anyhow::Result;
+
+use crate::modes::behaviors::audio::AudioBhvConf;
+use crate::modes::behaviors::solid::SolidBhvConf;
+use crate::modes::behaviors::BehaviorMod;
+use crate::modes::sources::color::ColorSrcConf;
+use crate::modes::sources::screen::ScreenSrcConf;
+use crate::modes::sources::wallpaper::WallpaperSrcConf;
+use crate::modes::sources::SourceMod;
 
 lazy_static! {
     // ? Maybe I should use RwLock there
@@ -23,9 +26,6 @@ lazy_static! {
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct Conf {
-    #[config(default = "Wallpaper")]
-    pub mode: Mode,
-
     // Global things
     #[config(nested)]
     pub global: GlobalConf,
@@ -34,9 +34,13 @@ pub struct Conf {
     #[config(nested)]
     pub strip: StripConf,
 
-    // Several PLight modes configuration
+    // Several PLight color source configuration
     #[config(nested)]
-    pub modes: ModesConf,
+    pub source: SourceConf,
+
+    // Several PLight behavior configuration
+    #[config(nested)]
+    pub behavior: BehaviorConf,
 }
 
 impl Conf {
@@ -107,6 +111,10 @@ impl StripConf {
     pub fn len(&self) -> usize {
         self.width * 2 + self.height * 2 - self.bottom_gap
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.width == 0 || self.height == 0 || self.width * 2 + self.height * 2 == self.bottom_gap
+    }
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
@@ -122,15 +130,25 @@ pub struct TintConf {
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
-pub struct ModesConf {
+pub struct SourceConf {
+    #[config(default = "Color")]
+    pub mode: SourceMod,
+
     #[config(nested)]
-    pub audio: AudioModConf,
+    pub color: ColorSrcConf,
     #[config(nested)]
-    pub cava_wall_dcol: CavaWallDcolModConf,
+    pub screen: ScreenSrcConf,
     #[config(nested)]
-    pub color: ColorModConf,
+    pub wallpaper: WallpaperSrcConf,
+}
+
+#[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
+pub struct BehaviorConf {
+    #[config(default = "Audio")]
+    pub mode: BehaviorMod,
+
     #[config(nested)]
-    pub screen: ScreenModConf,
+    pub audio: AudioBhvConf,
     #[config(nested)]
-    pub wallpaper: WallpaperModConf,
+    pub solid: SolidBhvConf,
 }

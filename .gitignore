@@ -11,3 +11,6 @@ target/
 
 # Publishing
 PKGBUILD
+
+# Direnv
+.direnv/*

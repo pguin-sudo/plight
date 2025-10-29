@@ -1,27 +1,23 @@
-mod config;
-mod errors;
-mod modes;
-mod strip;
-mod utils;
+use anyhow::Result;
+use colog::init;
+use log::info;
+use plight::core::strip::Strip;
 
-use std::sync::Arc;
-
-use config::CONFIG;
-use errors::Result;
-use strip::Strip;
+use plight::config::CONFIG;
+use plight::core::arduino_strip::ArduinoStrip;
+use plight::core::poll;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut strip = Strip::new(&CONFIG.strip)?;
-    let strip_arc = Arc::new(strip.clone());
-    println!("Strip has set up successfully");
+    init();
 
-    let mode = CONFIG.mode;
-    println!("Current mode is \"{:?}\"", mode);
+    let source_mode = CONFIG.source.mode;
+    info!("Current source mode is \"{:?}\"", source_mode);
+    let behavior_mode = CONFIG.behavior.mode;
+    info!("Current behavior mode is \"{:?}\"", behavior_mode);
 
-    loop {
-        if let Err(e) = mode.poll(strip_arc.clone(), &mut strip).await {
-            println!("New loop after error: {:?}", e);
-        }
-    }
+    let strip = Box::new(ArduinoStrip::new()?);
+
+    let _ = poll(strip, source_mode, behavior_mode).await;
+    Ok(())
 }

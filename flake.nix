@@ -5,31 +5,38 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = inputs:
-    inputs.flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs = inputs @ {
+    self,
+    nixpkgs,
+    flake-parts,
+    rust-overlay,
+    ...
+  }:
+    flake-parts.lib.mkFlake {
+      inherit inputs;
+    } {
       systems = ["x86_64-linux"];
+
       perSystem = {
         config,
-        self',
         pkgs,
-        lib,
         system,
         ...
       }: let
-        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-        msrv = cargoToml.package.rust-version;
-
-        pkgs = import inputs.nixpkgs {
+        pkgs = import nixpkgs {
           inherit system;
-          overlays = [(import inputs.rust-overlay)];
+          overlays = [rust-overlay.overlays.default];
         };
+
+        rustToolchain = pkgs.rust-bin.stable.latest.default;
+
+        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
 
         runtimeDeps = with pkgs; [
           pipewire
           dbus
           udev
           libxcb
-          xorg.libX11
           stdenv.cc.cc.lib
         ];
 
@@ -39,61 +46,40 @@
           rustPlatform.bindgenHook
         ];
 
-        devDeps = with pkgs; [
-          rust-analyzer
-          cargo-edit
-          lldb
-          gdb
+        nativeBuildDeps = with pkgs; [
+          pkg-config
+          llvmPackages.clang
         ];
-
-        mkPackage = features:
-          (pkgs.makeRustPlatform {
-            cargo = pkgs.rust-bin.stable.latest.minimal;
-            rustc = pkgs.rust-bin.stable.latest.minimal;
-          }).buildRustPackage {
-            inherit (cargoToml.package) name version;
-            src = ./.;
-            cargoLock.lockFile = ./Cargo.lock;
-            buildFeatures = features;
-            buildInputs = runtimeDeps;
-            nativeBuildInputs = buildDeps;
-          };
-
-        mkDevShell = rustToolchain:
-          pkgs.mkShell {
-            shell = "${pkgs.zsh}/bin/zsh";
-
-            shellHook = ''
-              export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}"
-               echo "Activated Rust development shell with $(rustc --version)"
-
-              if [ -n "$BASH" ]; then
-                exec ${pkgs.zsh}/bin/zsh
-              fi
-            '';
-            buildInputs = runtimeDeps;
-            nativeBuildInputs =
-              buildDeps
-              ++ devDeps
-              ++ [
-                rustToolchain
-                pkgs.zsh
-              ];
-
-            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-            RUST_BACKTRACE = "full";
-          };
       in {
-        packages = {
-          plight = mkPackage "";
-          default = self'.packages.plight;
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            rustToolchain
+            cargo-edit
+            lldb
+            rust-analyzer
+          ];
+
+          buildInputs = runtimeDeps;
+          nativeBuildInputs = nativeBuildDeps;
+
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          BINDGEN_EXTRA_CLANG_ARGS = "-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${pkgs.llvmPackages.clang.version}/include";
+
+          shellHook = ''
+            export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}"
+            echo "Rust: $(rustc --version)"
+          '';
         };
 
-        devShells = {
-          stable = mkDevShell pkgs.rust-bin.stable.latest.default;
-          nightly = mkDevShell (pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default));
-          msrv = mkDevShell pkgs.rust-bin.stable.${msrv}.default;
-          default = self'.devShells.stable;
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          inherit (cargoToml.package) name version;
+          src = ./.;
+          cargoLock.lockFile = ./Cargo.lock;
+
+          buildInputs = runtimeDeps;
+          nativeBuildInputs = buildDeps;
+
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
         };
       };
     };

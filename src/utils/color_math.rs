@@ -1,4 +1,4 @@
-use image::Rgb;
+use image::{Pixel, Rgb};
 
 pub fn average(pixels: &[Rgb<u8>]) -> Rgb<u8> {
     let total_pixels = pixels.len() as u64;
@@ -37,4 +37,23 @@ pub fn median(pixels: &[Rgb<u8>]) -> Rgb<u8> {
     let median_b = b_values[mid_index];
 
     Rgb::<u8>::from([median_r, median_g, median_b])
+}
+
+#[deprecated]
+pub fn rotate_smooth(colors: &[Rgb<u8>], speed: f32) -> Vec<Rgb<u8>> {
+    let mut result = Vec::with_capacity(colors.len());
+    for i in 0..colors.len() - 1 {
+        result.push(colors[i].map2(&colors[i + 1], |channel1, channel2| {
+            (channel1 as f32 * speed).round() as u8
+                + (channel2 as f32 * (1.0 - speed)).round() as u8
+        }));
+    }
+    result.push(
+        colors[colors.len() - 1].map2(&colors[0], |channel1, channel2| {
+            (channel1 as f32 * speed).round() as u8
+                + (channel2 as f32 * (1.0 - speed)).round() as u8
+        }),
+    );
+
+    result
 }

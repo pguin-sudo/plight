@@ -1,42 +1,14 @@
-use derive_more::{Display, From};
-use image::ImageError;
-use std::{env, io, num, str};
+use thiserror::Error;
+use tokio::io;
 
-pub type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Debug, From, Display)]
-pub enum Error {
-    // -- Decoding
-    #[from]
-    Utf8Error(str::Utf8Error),
-    #[from]
-    ParseIntError(num::ParseIntError),
-    #[from]
-    ImageError(ImageError),
-
-    // -- IO
-    #[from]
-    VarError(env::VarError),
-    #[from]
-    Config(confique::Error),
-    #[from]
-    SerialPort(serialport::Error),
-    #[from]
-    XCapError(xcap::XCapError),
-    #[from]
-    PipewireError(pipewire::Error),
-
-    #[from]
-    #[display("given {given}")]
+#[derive(Debug, Error)]
+pub enum PLightError {
+    #[error("given {given}")]
     WrongWallpaperPath { given: String },
-
-    // -- Strip
-    #[from]
-    PostfixReading(io::Error),
-    #[from]
-    #[display("given {given} must be {actual}")]
+    #[error(transparent)]
+    PostfixReading(#[from] io::Error),
+    #[error("given {given} must be {actual}")]
     WrongLength { given: usize, actual: usize },
-    #[from]
-    #[display("{_0:?}")]
+    #[error("{0:?}")]
     WrongPostfix([u8; 3]),
 }
