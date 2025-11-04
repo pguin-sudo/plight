@@ -1,7 +1,7 @@
 use anyhow::Result;
 use confique::Config;
 
-use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use crate::core::strip::Strip;
 use crate::modes::behaviors::Behavior;
 
@@ -19,7 +19,7 @@ impl SolidBhv {
 }
 
 impl Behavior for SolidBhv {
-    fn poll_next(&mut self, colors: &[LedColor]) -> Result<()> {
+    fn poll_next(&mut self, colors: &LedSequence) -> Result<()> {
         self.strip.set_leds(colors)?;
         Ok(())
     }

@@ -3,6 +3,7 @@ use confique::Config;
 
 use crate::config::CONFIG;
 use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use crate::modes::sources::Source;
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
@@ -11,22 +12,19 @@ pub struct ColorSrcConf {
     pub color: [u8; 3],
 }
 
-pub struct ColorSrc {
-    length: usize,
-}
+pub struct ColorSrc {}
 
 impl ColorSrc {
     pub fn new() -> Result<Self> {
-        Ok(ColorSrc {
-            length: CONFIG.strip.len(),
-        })
+        Ok(ColorSrc {})
     }
 }
 
 impl Source for ColorSrc {
-    fn poll_next(&mut self) -> Result<Vec<LedColor>> {
+    fn poll_next(&mut self, led_sequence: &mut LedSequence) -> Result<()> {
         let color = LedColor::from(CONFIG.source.color.color);
 
-        Ok(vec![color; self.length])
+        led_sequence.set_color(color);
+        Ok(())
     }
 }

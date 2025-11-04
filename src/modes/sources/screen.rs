@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use xcap::Monitor;
 
 use crate::config::CONFIG;
-use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use crate::modes::sources::Source;
 use crate::utils::{converters::rgba8_to_rgb8, image_processing::parse_image};
 
@@ -27,12 +27,13 @@ impl ScreenSrc {
 }
 
 impl Source for ScreenSrc {
-    fn poll_next(&mut self) -> Result<Vec<LedColor>> {
+    fn poll_next(&mut self, led_sequence: &mut LedSequence) -> Result<()> {
         let image = match CONFIG.source.screen.engine {
             CaptureEngine::XCap => self.monitor.capture_image()?,
         };
 
-        Ok(parse_image(&rgba8_to_rgb8(image)))
+        parse_image(&rgba8_to_rgb8(image), led_sequence);
+        Ok(())
     }
 }
 

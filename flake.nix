@@ -38,17 +38,29 @@
           udev
           libxcb
           stdenv.cc.cc.lib
+          wayland
+          libglvnd
+          mesa
+          libgbm
         ];
 
         buildDeps = with pkgs; [
           pkg-config
           llvmPackages.clang
           rustPlatform.bindgenHook
+          wayland
+          libglvnd
+          mesa
+          libgbm
         ];
 
         nativeBuildDeps = with pkgs; [
           pkg-config
           llvmPackages.clang
+          wayland
+          libglvnd
+          mesa
+          libgbm
         ];
       in {
         devShells.default = pkgs.mkShell {
@@ -64,6 +76,13 @@
 
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           BINDGEN_EXTRA_CLANG_ARGS = "-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${pkgs.llvmPackages.clang.version}/include";
+          PKG_CONFIG_PATH = with pkgs;
+            lib.makeSearchPath "lib/pkgconfig" [
+              wayland
+              libglvnd
+              mesa
+              libgbm
+            ];
 
           shellHook = ''
             export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}"
@@ -80,6 +99,13 @@
           nativeBuildInputs = buildDeps;
 
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          PKG_CONFIG_PATH = with pkgs;
+            lib.makeSearchPath "lib/pkgconfig" [
+              wayland
+              libglvnd
+              mesa
+              libgbm
+            ];
         };
       };
     };

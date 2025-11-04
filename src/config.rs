@@ -89,20 +89,20 @@ pub struct StripConf {
     pub height: usize,
     #[config(default = 7)]
     pub bottom_gap: usize,
-    // Width of coreners (pixels)
+    //// Width of coreners (pixels)
     #[config(default = 0)]
     pub corner_size_p: usize,
     #[config(default = 200)]
     pub thickness_p: usize,
-    /// #[config(default = false)]
-    /// pub clockwise: bool,
 
+    // #[config(default = false)]
+    // pub clockwise: bool,
     #[config(default = "/dev/ttyUSB0")]
     pub serial_port: String,
     #[config(default = 115200)]
     pub baudrate: u32,
 
-    // Tint configuration
+    /// Tint configuration
     #[config(nested)]
     pub tint: TintConf,
 }
@@ -131,6 +131,7 @@ pub struct TintConf {
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct SourceConf {
+    /// Colors' source mode (Color, Screen, Wallpaper)
     #[config(default = "Color")]
     pub mode: SourceMod,
 
@@ -144,6 +145,7 @@ pub struct SourceConf {
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Config)]
 pub struct BehaviorConf {
+    /// Colors' behavior mode (Audio, Solid)
     #[config(default = "Audio")]
     pub mode: BehaviorMod,
 

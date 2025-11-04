@@ -6,7 +6,7 @@ use rand::random;
 use serialport::{self, SerialPort};
 
 use crate::config::CONFIG;
-use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use crate::core::strip::Strip;
 use crate::errors::PLightError::{PostfixReading, WrongLength, WrongPostfix};
 const PREFIX: [u8; 3] = [89, 124, 234];
@@ -33,7 +33,7 @@ impl Strip for ArduinoStrip {
         })
     }
 
-    fn set_leds(&self, led_colors: &[LedColor]) -> Result<()> {
+    fn set_leds(&self, led_colors: &LedSequence) -> Result<()> {
         if led_colors.len() != self.strip_length {
             return Err(WrongLength {
                 given: led_colors.len(),

@@ -6,12 +6,12 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::led_color::LedColor,
+    core::led_sequence::LedSequence,
     modes::sources::{color::ColorSrc, screen::ScreenSrc, wallpaper::WallpaperSrc},
 };
 
 pub trait Source {
-    fn poll_next(&mut self) -> Result<Vec<LedColor>>;
+    fn poll_next(&mut self, led_sequence: &mut LedSequence) -> Result<()>;
 }
 
 #[derive(Clone, Copy, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]
@@ -22,7 +22,7 @@ pub enum SourceMod {
 }
 
 impl SourceMod {
-    pub async fn get_source(&self) -> Result<Box<dyn Source>> {
+    pub fn get_source(&self) -> Result<Box<dyn Source>> {
         match self {
             SourceMod::Color => Ok(Box::new(ColorSrc::new()?)),
             SourceMod::Screen => Ok(Box::new(ScreenSrc::new()?)),

@@ -1,11 +1,11 @@
 use crate::config::CONFIG;
-use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use crate::utils::color_math::{average, median};
 use image::{ImageBuffer, Rgb};
 use ndarray::{s, Array2};
 
 // TODO: Replace Vec with &[Rgb<u8>]>
-pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> Vec<LedColor> {
+pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSequence) {
     let process = match CONFIG.global.parse_mode {
         crate::config::ParseMode::Average => average,
         crate::config::ParseMode::Median => median,
@@ -70,5 +70,5 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>) -> Vec<LedColor> {
         colors.push(process(&slice.iter().copied().collect::<Vec<_>>()).into());
     }
 
-    colors
+    led_sequence.set_colors(&colors);
 }

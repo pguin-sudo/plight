@@ -7,8 +7,7 @@ use plight::config::CONFIG;
 use plight::core::arduino_strip::ArduinoStrip;
 use plight::core::poll;
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     init();
 
     let source_mode = CONFIG.source.mode;
@@ -18,6 +17,6 @@ async fn main() -> Result<()> {
 
     let strip = Box::new(ArduinoStrip::new()?);
 
-    let _ = poll(strip, source_mode, behavior_mode).await;
+    let _ = poll(strip, source_mode, behavior_mode);
     Ok(())
 }

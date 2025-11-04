@@ -1,10 +1,14 @@
+use std::io;
+
 use thiserror::Error;
-use tokio::io;
 
 #[derive(Debug, Error)]
 pub enum PLightError {
     #[error("given {given}")]
     WrongWallpaperPath { given: String },
+    #[error("pipewire error")]
+    PipewireError,
+
     #[error(transparent)]
     PostfixReading(#[from] io::Error),
     #[error("given {given} must be {actual}")]

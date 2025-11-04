@@ -7,7 +7,7 @@ use image::open;
 use serde::{Deserialize, Serialize};
 
 use crate::config::CONFIG;
-use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use crate::errors::PLightError::WrongWallpaperPath;
 use crate::modes::sources::Source;
 use crate::utils::image_processing::parse_image;
@@ -22,7 +22,7 @@ pub struct WallpaperSrc {
     wallpaper_command: Command,
     prev_output_str: String,
     image_prefix: &'static str,
-    colors: Vec<LedColor>,
+    colors: LedSequence,
 }
 
 impl WallpaperSrc {
@@ -36,7 +36,7 @@ impl WallpaperSrc {
         };
 
         let image_prefix = "image: ";
-        let colors: Vec<LedColor> = Vec::new();
+        let colors = LedSequence::new(CONFIG.strip.len());
 
         let prev_output_str: String = "".into();
 
@@ -50,13 +50,14 @@ impl WallpaperSrc {
 }
 
 impl Source for WallpaperSrc {
-    fn poll_next(&mut self) -> Result<Vec<LedColor>> {
+    fn poll_next(&mut self, led_sequence: &mut LedSequence) -> Result<()> {
         let output = self.wallpaper_command.output()?;
 
         let output_str = str::from_utf8(&output.stdout)?;
 
         if output_str == self.prev_output_str {
-            return Ok(self.colors.clone());
+            led_sequence.set_sequence(self.colors.clone());
+            return Ok(());
         }
 
         self.prev_output_str = output_str.to_string();
@@ -67,8 +68,10 @@ impl Source for WallpaperSrc {
 
                 let image = open(image_path)?.into_rgb8();
 
-                self.colors = parse_image(&image);
-                Ok(self.colors.clone())
+                parse_image(&image, &mut self.colors);
+
+                led_sequence.set_sequence(self.colors.clone());
+                Ok(())
             }
             None => Err(WrongWallpaperPath {
                 given: output_str.to_string(),

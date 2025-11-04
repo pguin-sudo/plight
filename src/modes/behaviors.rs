@@ -5,12 +5,12 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    core::{led_color::LedColor, strip::Strip},
+    core::{led_sequence::LedSequence, strip::Strip},
     modes::behaviors::{audio::AudioBhv, solid::SolidBhv},
 };
 
 pub trait Behavior {
-    fn poll_next(&mut self, colors: &[LedColor]) -> Result<()>;
+    fn poll_next(&mut self, colors: &LedSequence) -> Result<()>;
 }
 
 #[derive(Clone, Copy, PartialEq, PartialOrd, Debug, Serialize, Deserialize)]

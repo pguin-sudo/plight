@@ -1,4 +1,4 @@
-use crate::core::led_color::LedColor;
+use crate::core::led_sequence::LedSequence;
 use anyhow::Result;
 
 pub trait Strip {
@@ -6,5 +6,5 @@ pub trait Strip {
     where
         Self: Sized;
 
-    fn set_leds(&self, led_colors: &[LedColor]) -> Result<()>;
+    fn set_leds(&self, led_colors: &LedSequence) -> Result<()>;
 }
