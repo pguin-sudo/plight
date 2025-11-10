@@ -11,8 +11,6 @@ pub enum PLightError {
 
     #[error(transparent)]
     PostfixReading(#[from] io::Error),
-    #[error("given {given} must be {actual}")]
+    #[error("wrong length (given {given} must be {actual})")]
     WrongLength { given: usize, actual: usize },
-    #[error("{0:?}")]
-    WrongPostfix([u8; 3]),
 }

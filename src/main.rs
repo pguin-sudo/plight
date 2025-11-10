@@ -1,6 +1,6 @@
 use anyhow::Result;
 use colog::init;
-use log::info;
+use log::{error, info};
 use plight::core::strip::Strip;
 
 use plight::config::CONFIG;
@@ -17,6 +17,8 @@ fn main() -> Result<()> {
 
     let strip = Box::new(ArduinoStrip::new()?);
 
-    let _ = poll(strip, source_mode, behavior_mode);
+    if let Err(e) = poll(strip, source_mode, behavior_mode) {
+        error!("PLight crushed with error: {:}", e);
+    }
     Ok(())
 }

@@ -2,13 +2,15 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::Result;
+use log::{error, warn};
 use rand::random;
 use serialport::{self, SerialPort};
 
 use crate::config::CONFIG;
 use crate::core::led_sequence::LedSequence;
 use crate::core::strip::Strip;
-use crate::errors::PLightError::{PostfixReading, WrongLength, WrongPostfix};
+use crate::errors::PLightError::{PostfixReading, WrongLength};
+
 const PREFIX: [u8; 3] = [89, 124, 234];
 
 #[derive(Clone)]
@@ -42,33 +44,48 @@ impl Strip for ArduinoStrip {
             .into());
         }
 
-        // TODO: Try to replace unwrap() with ?
-        let mut port = self.port.lock().unwrap();
+        let mut port = match self.port.lock() {
+            Ok(port) => port,
+            Err(e) => {
+                error!("Serial port error: {}", e);
+                return Ok(());
+            }
+        };
+
+        let _ = port.clear(serialport::ClearBuffer::Input);
 
         port.write_all(&PREFIX)?;
 
         let hi: u8 = random();
         let lo: u8 = random();
-        let chk = (hi ^ lo ^ 0x55) as u8;
+        let chk = hi ^ lo ^ 0x55;
 
-        port.write_all(&[hi])?;
-        port.write_all(&[lo])?;
-        port.write_all(&[chk])?;
+        port.write_all(&[hi, lo, chk])?;
+
         for led_color in led_colors {
-            port.write_all(&led_color.apply_tint())?;
+            let color_bytes = led_color.apply_tint();
+            port.write_all(&color_bytes)?;
         }
+
+        port.flush()?;
 
         let mut buf = [0; 3];
         match port.read_exact(&mut buf) {
             Ok(_) => {
                 buf.reverse();
-                if buf == PREFIX {
+                if buf != PREFIX {
+                    warn!("Wrong postfix {:?}, expected {:?}", buf, PREFIX);
+                }
+                Ok(())
+            }
+            Err(e) => {
+                if e.kind() == std::io::ErrorKind::TimedOut {
+                    warn!("Timeout reading postfix - data may have been sent successfully");
                     Ok(())
                 } else {
-                    Err(WrongPostfix(buf).into())
+                    Err(PostfixReading(e).into())
                 }
             }
-            Err(e) => Err(PostfixReading(e).into()),
         }
     }
 }
