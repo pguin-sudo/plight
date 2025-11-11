@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use image::{ImageBuffer, Rgb};
-use log::trace;
+use log::debug;
 use ndarray::{s, Array2};
 
 use crate::config::CONFIG;
@@ -77,5 +77,5 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSe
     }
 
     led_sequence.set_colors(&colors);
-    trace!("Image processing duration: {:?}", __debug_time.elapsed());
+    debug!("Image processing duration: {:?}", __debug_time.elapsed());
 }

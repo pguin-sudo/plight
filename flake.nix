@@ -52,6 +52,7 @@
           libglvnd
           mesa
           libgbm
+          pango
         ];
 
         nativeBuildDeps = with pkgs; [
@@ -61,6 +62,7 @@
           libglvnd
           mesa
           libgbm
+          pango
         ];
       in {
         devShells.default = pkgs.mkShell {
@@ -82,6 +84,7 @@
               libglvnd
               mesa
               libgbm
+              pango
             ];
 
           shellHook = ''
@@ -105,6 +108,7 @@
               libglvnd
               mesa
               libgbm
+              pango
             ];
         };
       };

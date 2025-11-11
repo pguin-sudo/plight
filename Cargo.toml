@@ -9,6 +9,8 @@ license = "GPL-3.0"
 
 [dependencies]
 anyhow = "1.0.100"
+ashpd = { version = "0.12.0", features = ["tokio"] }
+zbus = "4.0"
 colog = "1.4.0"
 confique = { version = "0.2.6", features = ["toml"] }
 derive_more = { version = "1.0.0", features = ["display", "from"] }
@@ -17,10 +19,11 @@ lazy_static = "1.5.0"
 log = "0.4.28"
 ndarray = "0.16.1"
 pipewire = "0.8.0"
+pipewire-sys = "0.8.0"
 rand = "0.8.5"
 serde = "1.0.228"
 serde_derive = "1.0.228"
 serialport = "4.8.1"
 thiserror = "2.0.17"
+tokio = { version = "1.48.0", features = ["full"] }
 unit-interval = "0.1.0"
-xcap = "0.7.1"

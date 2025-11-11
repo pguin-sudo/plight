@@ -90,11 +90,10 @@ impl AudioBhv {
         let core = context.connect(None)?;
 
         let props = properties! {
-            *keys::APP_NAME => "PLight",
             *keys::FORMAT_DSP => "32 bit float stereo audio",
             *keys::MEDIA_CATEGORY => "Capture",
             *keys::MEDIA_CLASS => "Stream/Input/Audio",
-            *keys::MEDIA_NAME => "plight",
+            *keys::MEDIA_NAME => "Audio",
             *keys::MEDIA_ROLE => "Music",
             *keys::MEDIA_TYPE => "Audio",
             *keys::NODE_ALWAYS_PROCESS => "true",
@@ -104,7 +103,7 @@ impl AudioBhv {
             *keys::STREAM_CAPTURE_SINK => "true",
         };
 
-        let stream = Stream::new(&core, "PLight audio capture", props)?;
+        let stream = Stream::new(&core, "audio-capture", props)?;
 
         let obj = object!(
             SpaTypes::ObjectParamFormat,
@@ -184,7 +183,7 @@ impl AudioBhv {
                 *guard = Box::new(make_get_sound_level_closure(audio_info));
 
                 info!(
-                    "Format negotiated: {} Hz | {} ch | format: {:?}",
+                    "Audio format negotiated: {} Hz | {} ch | format: {:?}",
                     audio_info.rate(),
                     audio_info.channels(),
                     audio_info.format(),
