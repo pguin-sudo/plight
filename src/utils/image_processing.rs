@@ -1,11 +1,17 @@
+use std::time::Instant;
+
+use image::{ImageBuffer, Rgb};
+use log::trace;
+use ndarray::{s, Array2};
+
 use crate::config::CONFIG;
 use crate::core::led_sequence::LedSequence;
 use crate::utils::color_math::{average, median};
-use image::{ImageBuffer, Rgb};
-use ndarray::{s, Array2};
 
 // TODO: Replace Vec with &[Rgb<u8>]>
 pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSequence) {
+    let __debug_time = Instant::now();
+
     let process = match CONFIG.global.parse_mode {
         crate::config::ParseMode::Average => average,
         crate::config::ParseMode::Median => median,
@@ -31,7 +37,7 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSe
             (right_bottom_offset_p + (i * horizontal_thickness_p))
                 ..(right_bottom_offset_p + ((i + 1) * horizontal_thickness_p))
         ]);
-        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()).into());
+        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()));
     }
 
     // Right
@@ -40,7 +46,7 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSe
             (i * vertical_thickness_p)..((i + 1) * vertical_thickness_p),
             (width_p - CONFIG.strip.thickness_p)..width_p
         ]);
-        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()).into());
+        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()));
     }
 
     // Top
@@ -49,7 +55,7 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSe
             0..CONFIG.strip.thickness_p,
             (i * horizontal_thickness_p)..((i + 1) * horizontal_thickness_p)
         ]);
-        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()).into());
+        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()));
     }
 
     // Left
@@ -58,7 +64,7 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSe
             (i * vertical_thickness_p)..((i + 1) * vertical_thickness_p),
             0..CONFIG.strip.thickness_p,
         ]);
-        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()).into());
+        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()));
     }
 
     // Bottom left
@@ -67,8 +73,9 @@ pub fn parse_image(img: &ImageBuffer<Rgb<u8>, Vec<u8>>, led_sequence: &mut LedSe
             (height_p - CONFIG.strip.thickness_p)..height_p,
             (i * horizontal_thickness_p)..((i + 1) * horizontal_thickness_p)
         ]);
-        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()).into());
+        colors.push(process(&slice.iter().copied().collect::<Vec<_>>()));
     }
 
     led_sequence.set_colors(&colors);
+    trace!("Image processing duration: {:?}", __debug_time.elapsed());
 }
